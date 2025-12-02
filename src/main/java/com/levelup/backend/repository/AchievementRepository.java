@@ -1,4 +1,9 @@
 package com.levelup.backend.repository;
 
-public class AchievementRepository {
+import com.levelup.backend.entity.Achievement;
+import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.stereotype.Repository;
+
+@Repository
+public interface AchievementRepository extends JpaRepository<Achievement, Long> {
 }
