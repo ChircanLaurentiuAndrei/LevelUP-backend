@@ -23,7 +23,7 @@ public class UserTask {
     @JoinColumn(name = "task_id", nullable = false)
     private Task task;
 
-    @ColumnDefault("PENDING")
+    @ColumnDefault("'PENDING'")
     private String status = "PENDING";
 
     private LocalDateTime assignedAt = LocalDateTime.now();
