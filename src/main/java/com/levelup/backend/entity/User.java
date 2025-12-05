@@ -1,14 +1,15 @@
 package com.levelup.backend.entity;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import jakarta.persistence.*;
 import lombok.Data;
-
 import java.time.LocalDate;
 import java.util.Set;
 
 @Entity
 @Table(name = "users")
 @Data
+@JsonIgnoreProperties({"unlockedAchievements", "passwordHash"})
 public class User {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
