@@ -49,11 +49,9 @@ public class SecurityConfig {
 
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers("/api/auth/**").permitAll()
-
-                        .requestMatchers("/api/user/me").authenticated()
                         .requestMatchers("/api/dashboard").authenticated()
                         .requestMatchers("/api/tasks/**").authenticated()
-
+                        .requestMatchers("/api/user/**").authenticated()
                         .anyRequest().denyAll()
                 )
 
