@@ -1,7 +1,8 @@
 package com.levelup.backend.controller;
 
-import com.levelup.backend.dto.UserDTO; // Import the REAL DTO
+import com.levelup.backend.dto.UserDTO;
 import com.levelup.backend.entity.User;
+import com.levelup.backend.repository.AchievementRepository;
 import com.levelup.backend.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
@@ -11,12 +12,17 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import java.util.List;
+
 @RestController
 @RequestMapping("/api/user")
 public class UserController {
 
     @Autowired
     private UserRepository userRepo;
+
+    @Autowired
+    private AchievementRepository achievementRepo;
 
     @GetMapping("/me")
     public ResponseEntity<?> getCurrentUser(@AuthenticationPrincipal UserDetails userDetails) {
@@ -26,7 +32,6 @@ public class UserController {
         User user = userRepo.findByUsername(userDetails.getUsername())
                 .orElseThrow(() -> new RuntimeException("User not found"));
 
-        // Map Entity to DTO
         UserDTO dto = new UserDTO(
                 user.getId(),
                 user.getUsername(),
@@ -39,5 +44,17 @@ public class UserController {
         );
 
         return ResponseEntity.ok(dto);
+    }
+
+    @GetMapping("/achievements")
+    public ResponseEntity<?> getAllAchievements() {
+        return ResponseEntity.ok(achievementRepo.findAll());
+    }
+
+    @GetMapping("/leaderboard")
+    public ResponseEntity<List<UserDTO>> getLeaderboard() {
+        return ResponseEntity.ok(userRepo.findAllByOrderByCurrentXpDesc().stream()
+                .map(u -> new UserDTO(u.getId(), u.getUsername(), null, u.getCurrentLevel(), u.getCurrentXp(), u.getStreak(), null, null))
+                .toList());
     }
 }
