@@ -31,7 +31,8 @@ public class UserController {
         if (userDetails == null) {
             return ResponseEntity.status(401).body("Unauthorized");
         }
-        User user = userRepo.findByUsername(userDetails.getUsername())
+
+        User user = userRepo.findByUsernameWithAchievements(userDetails.getUsername())
                 .orElseThrow(() -> new RuntimeException("User not found"));
 
         List<Long> unlockedIds = user.getUnlockedAchievements().stream()
