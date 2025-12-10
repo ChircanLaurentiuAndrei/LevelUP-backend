@@ -6,7 +6,6 @@ import com.levelup.backend.repository.AchievementRepository;
 import com.levelup.backend.repository.UserRepository;
 import com.levelup.backend.repository.UserTaskRepository;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -22,7 +21,6 @@ public class GamificationService {
     @Autowired
     private UserTaskRepository userTaskRepo;
 
-    @Async
     @Transactional
     public void processRewards(Long userId, Integer xpGained) {
         User user = userRepo.findById(userId).orElseThrow();
@@ -32,15 +30,11 @@ public class GamificationService {
         int newLevel = (user.getCurrentXp() / 100) + 1;
         if (newLevel > user.getCurrentLevel()) {
             user.setCurrentLevel(newLevel);
-            // Might add a notification here
         }
 
         checkAchievements(user);
 
         userRepo.save(user);
-
-        System.out.println("Async processing complete for User " + user.getUsername()
-                + ". New XP: " + user.getCurrentXp());
     }
 
     private void checkAchievements(User user) {
@@ -51,16 +45,18 @@ public class GamificationService {
             if (user.getUnlockedAchievements().contains(ach)) continue;
 
             boolean unlocked = false;
+            String desc = ach.getDescription().toLowerCase();
 
-            if (ach.getDescription().toLowerCase().contains("tasks") || ach.getDescription().toLowerCase().contains("task")) {
+            if (desc.contains("task") || desc.contains("tasks")) {
                 if (completedTasksCount >= ach.getConditionValue()) unlocked = true;
             }
-            else if (ach.getDescription().toLowerCase().contains("level") || ach.getDescription().toLowerCase().contains("levels")) {
+            else if (desc.contains("level")) {
                 if (user.getCurrentLevel() >= ach.getConditionValue()) unlocked = true;
             }
-            else if (ach.getDescription().toLowerCase().contains("xp")) {
+            else if (desc.contains("xp")) {
                 if (user.getCurrentXp() >= ach.getConditionValue()) unlocked = true;
             }
+
             if (unlocked) {
                 user.getUnlockedAchievements().add(ach);
             }
