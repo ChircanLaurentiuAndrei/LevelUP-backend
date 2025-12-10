@@ -4,6 +4,7 @@ import com.levelup.backend.dto.AuthResponse;
 import com.levelup.backend.dto.LoginRequest;
 import com.levelup.backend.dto.RegisterRequest;
 import com.levelup.backend.service.AuthService;
+import com.levelup.backend.repository.StudyProgramRepository;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
@@ -16,6 +17,14 @@ public class AuthController {
 
     @Autowired
     private AuthService authService;
+
+    @Autowired
+    private StudyProgramRepository studyProgramRepo;
+
+    @GetMapping("/study-programs")
+    public ResponseEntity<?> getStudyPrograms() {
+        return ResponseEntity.ok(studyProgramRepo.findAll());
+    }
 
     @PostMapping("/register")
     public ResponseEntity<?> register(@Valid @RequestBody RegisterRequest req) {

@@ -1,6 +1,7 @@
 package com.levelup.backend.controller;
 
 import com.levelup.backend.dto.UserDTO;
+import com.levelup.backend.entity.Achievement;
 import com.levelup.backend.entity.User;
 import com.levelup.backend.repository.AchievementRepository;
 import com.levelup.backend.repository.UserRepository;
@@ -13,6 +14,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.util.List;
+import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/api/user")
@@ -32,6 +34,10 @@ public class UserController {
         User user = userRepo.findByUsername(userDetails.getUsername())
                 .orElseThrow(() -> new RuntimeException("User not found"));
 
+        List<Long> unlockedIds = user.getUnlockedAchievements().stream()
+                .map(Achievement::getId)
+                .collect(Collectors.toList());
+
         UserDTO dto = new UserDTO(
                 user.getId(),
                 user.getUsername(),
@@ -40,7 +46,8 @@ public class UserController {
                 user.getCurrentXp(),
                 user.getStreak(),
                 user.getStudyProgram() != null ? user.getStudyProgram().getName() : null,
-                user.getLastLoginDate()
+                user.getLastLoginDate(),
+                unlockedIds
         );
 
         return ResponseEntity.ok(dto);
@@ -54,7 +61,17 @@ public class UserController {
     @GetMapping("/leaderboard")
     public ResponseEntity<List<UserDTO>> getLeaderboard() {
         return ResponseEntity.ok(userRepo.findAllByOrderByCurrentXpDesc().stream()
-                .map(u -> new UserDTO(u.getId(), u.getUsername(), null, u.getCurrentLevel(), u.getCurrentXp(), u.getStreak(), null, null))
+                .map(u -> new UserDTO(
+                        u.getId(),
+                        u.getUsername(),
+                        null,
+                        u.getCurrentLevel(),
+                        u.getCurrentXp(),
+                        u.getStreak(),
+                        null,
+                        null,
+                        null
+                ))
                 .toList());
     }
 }

@@ -52,13 +52,13 @@ public class GamificationService {
 
             boolean unlocked = false;
 
-            if (ach.getName().contains("Task")) {
+            if (ach.getDescription().toLowerCase().contains("tasks") || ach.getDescription().toLowerCase().contains("task")) {
                 if (completedTasksCount >= ach.getConditionValue()) unlocked = true;
             }
-            else if (ach.getName().contains("Level")) {
+            else if (ach.getDescription().toLowerCase().contains("level") || ach.getDescription().toLowerCase().contains("levels")) {
                 if (user.getCurrentLevel() >= ach.getConditionValue()) unlocked = true;
             }
-            else if (ach.getName().contains("XP")) {
+            else if (ach.getDescription().toLowerCase().contains("xp")) {
                 if (user.getCurrentXp() >= ach.getConditionValue()) unlocked = true;
             }
             if (unlocked) {
