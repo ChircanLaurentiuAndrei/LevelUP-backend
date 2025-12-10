@@ -12,7 +12,6 @@ import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.transaction.annotation.Isolation;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -29,10 +28,10 @@ public class TaskController {
     private UserRepository userRepo;
 
     @Autowired
-    private VerificationService verificationService; // Inject our Thread Service
+    private VerificationService verificationService;
 
     @GetMapping("/dashboard")
-    @Transactional
+    @Transactional(readOnly = true)
     public ResponseEntity<DashboardDTO> getDashboard(@AuthenticationPrincipal UserDetails userDetails) {
         User user = userRepo.findByUsernameWithStudyProgram(userDetails.getUsername())
                 .orElseThrow(() -> new IllegalArgumentException("User not found"));
@@ -42,12 +41,11 @@ public class TaskController {
     }
 
     @PostMapping("/tasks/{userTaskId}/complete")
-    // Isolation.SERIALIZABLE prevents race conditions on the database level
-    // This ensures a user cannot spam-click to get double rewards.
-    @Transactional(isolation = Isolation.SERIALIZABLE)
+    @Transactional
     public ResponseEntity<?> completeTask(@PathVariable Long userTaskId,
                                           @AuthenticationPrincipal UserDetails userDetails) {
 
+        // 1. Fetch task ownership check (Lightweight read)
         UserTask ut = userTaskRepo.findById(userTaskId)
                 .orElseThrow(() -> new IllegalArgumentException("Task not found"));
 
@@ -55,20 +53,20 @@ public class TaskController {
             return ResponseEntity.status(403).body("This task does not belong to you");
         }
 
-        // Validate state to prevent double submission
-        if (!"PENDING".equals(ut.getStatus())) {
-            return ResponseEntity.badRequest().body("Task is already completed or under review");
+        // 2. ATOMIC UPDATE: Prevents race conditions efficiently
+        // This query attempts to set status to VERIFYING only if it is currently PENDING.
+        // It returns the number of rows updated (1 if successful, 0 if already clicked).
+        int updatedRows = userTaskRepo.updateStatusIfPending(userTaskId, "VERIFYING", LocalDateTime.now());
+
+        if (updatedRows == 0) {
+            return ResponseEntity.badRequest().body("Task is already completed or under verification");
         }
 
-        // 1. Set status to VERIFYING (Synchronous update)
-        ut.setStatus("VERIFYING");
-        ut.setCompletedAt(LocalDateTime.now());
-        userTaskRepo.save(ut);
-
-        // 2. Trigger the Background Thread (Asynchronous execution)
+        // 3. Trigger Background Verification
+        // Since we are in a transaction, the 'VERIFYING' state is locked or committed
+        // depending on isolation, but the update above ensures atomicity.
         verificationService.verifyTaskInBackground(ut.getId());
 
-        // 3. Return immediate response so the UI doesn't freeze
         return ResponseEntity.ok(Map.of(
                 "message", "Task submitted for verification",
                 "status", "VERIFYING"
