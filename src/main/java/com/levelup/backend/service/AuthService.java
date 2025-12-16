@@ -20,7 +20,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
-import java.time.LocalDateTime; // Changed to LocalDateTime for Hybrid Schema
+import java.time.LocalDateTime;
 import java.util.List;
 
 @Service
@@ -41,6 +41,9 @@ public class AuthService {
     @Autowired
     private JwtUtils jwtUtils;
 
+    // CONSTANT for the number of daily tasks
+    private static final int DAILY_TASK_LIMIT = 8;
+
     @Transactional
     public AuthResponse register(RegisterRequest req) {
         if (userRepo.findByUsername(req.getUsername()).isPresent()) {
@@ -60,22 +63,12 @@ public class AuthService {
         user.setStudyProgram(sp);
         user.setCurrentXp(0);
         user.setCurrentLevel(1);
-
-        // UPDATED: Use LocalDateTime for the new schema
         user.setLastLoginAt(LocalDateTime.now());
 
         user = userRepo.save(user);
 
-        List<Task> initialTasks = taskRepo.findByStudyProgramIdOrStudyProgramIsNull(sp.getId());
-
-        for (Task task : initialTasks) {
-            UserTask assignment = new UserTask();
-            assignment.setUser(user);
-            assignment.setTask(task);
-            assignment.setStatus("PENDING");
-            assignment.setAssignedDate(LocalDate.now());
-            userTaskRepo.save(assignment);
-        }
+        // CHANGED: Fetch 8 Random Tasks instead of ALL tasks
+        assignRandomTasks(user, sp.getId());
 
         String token = jwtUtils.generateToken(user.getUsername());
         return new AuthResponse(token, user.getUsername(), user.getId());
@@ -92,37 +85,46 @@ public class AuthService {
         LocalDateTime lastLoginTs = user.getLastLoginAt();
         LocalDate today = LocalDate.now();
 
-        // Check if user has logged in before, and if that login was strictly before today
+        // CHECK NEW DAY LOGIC
         if (lastLoginTs != null && lastLoginTs.toLocalDate().isBefore(today)) {
 
-            List<UserTask> tasks = userTaskRepo.findByUserId(user.getId());
-            for (UserTask ut : tasks) {
-                ut.setStatus("PENDING");
-                ut.setCompletedAt(null);
-                ut.setAssignedDate(today); // Move task date to today
-                userTaskRepo.save(ut);
-            }
+            // 1. CLEAR YESTERDAY'S UNFINISHED TASKS
+            // We keep "COMPLETED" tasks for history/achievements, but remove "PENDING"
+            userTaskRepo.deletePendingTasksByUserId(user.getId());
 
-            // 2. Streak Logic
+            // 2. ASSIGN 8 NEW RANDOM TASKS FOR TODAY
+            assignRandomTasks(user, user.getStudyProgram().getId());
+
+            // 3. STREAK LOGIC
             LocalDate lastLoginDate = lastLoginTs.toLocalDate();
-
             if (lastLoginDate.isBefore(today.minusDays(1))) {
-                user.setStreak(1);
+                user.setStreak(1); // Reset streak
             } else {
-                user.setStreak(user.getStreak() + 1);
+                user.setStreak(user.getStreak() + 1); // Increment streak
             }
         }
         else if (lastLoginTs == null) {
-            user.setStreak(1); // First login ever
+            user.setStreak(1);
         }
 
-        // --- END OF YOUR LOGIC ---
-
-        // Update last login to NOW (Timestamp)
         user.setLastLoginAt(LocalDateTime.now());
         userRepo.save(user);
 
         String token = jwtUtils.generateToken(user.getUsername());
         return new AuthResponse(token, user.getUsername(), user.getId());
+    }
+
+    // Helper method to keep code clean
+    private void assignRandomTasks(User user, Long studyProgramId) {
+        List<Task> randomTasks = taskRepo.findRandomTasks(studyProgramId, DAILY_TASK_LIMIT);
+
+        for (Task task : randomTasks) {
+            UserTask assignment = new UserTask();
+            assignment.setUser(user);
+            assignment.setTask(task);
+            assignment.setStatus("PENDING");
+            assignment.setAssignedDate(LocalDate.now());
+            userTaskRepo.save(assignment);
+        }
     }
 }

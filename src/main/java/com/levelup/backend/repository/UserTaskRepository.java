@@ -15,9 +15,7 @@ import java.util.Optional;
 public interface UserTaskRepository extends JpaRepository<UserTask, Long> {
 
     List<UserTask> findByUserId(Long userId);
-
     List<UserTask> findByUserIdAndStatus(Long userId, String status);
-
     Optional<UserTask> findByUserIdAndTaskIdAndStatus(Long userId, Long taskId, String status);
 
     @Modifying
@@ -25,4 +23,9 @@ public interface UserTaskRepository extends JpaRepository<UserTask, Long> {
     int updateStatusIfPending(@Param("id") Long id,
                               @Param("newStatus") String newStatus,
                               @Param("timestamp") LocalDateTime timestamp);
+
+    // NEW METHOD: Delete only PENDING tasks for a user (keep COMPLETED ones for history)
+    @Modifying
+    @Query("DELETE FROM UserTask u WHERE u.user.id = :userId AND u.status = 'PENDING'")
+    void deletePendingTasksByUserId(@Param("userId") Long userId);
 }
