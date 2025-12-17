@@ -67,7 +67,6 @@ public class AuthService {
 
         user = userRepo.save(user);
 
-        // CHANGED: Fetch 8 Random Tasks instead of ALL tasks
         assignRandomTasks(user, sp.getId());
 
         String token = jwtUtils.generateToken(user.getUsername());

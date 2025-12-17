@@ -6,5 +6,4 @@ import org.springframework.stereotype.Repository;
 
 @Repository
 public interface StudyProgramRepository extends JpaRepository<StudyProgram, Long> {
-    // StudyProgram findByName(String name);
 }

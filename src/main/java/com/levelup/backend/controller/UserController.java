@@ -40,7 +40,6 @@ public class UserController {
                 .map(Achievement::getId)
                 .collect(Collectors.toList());
 
-        // FIX: Convert the new LocalDateTime (DB) to LocalDate (DTO)
         LocalDate loginDate = (user.getLastLoginAt() != null)
                 ? user.getLastLoginAt().toLocalDate()
                 : null;
@@ -53,7 +52,7 @@ public class UserController {
                 user.getCurrentXp(),
                 user.getStreak(),
                 user.getStudyProgram() != null ? user.getStudyProgram().getName() : null,
-                loginDate, // Pass the converted date here
+                loginDate,
                 unlockedIds
         );
 
@@ -76,7 +75,7 @@ public class UserController {
                         u.getCurrentXp(),
                         u.getStreak(),
                         null,
-                        null, // lastLoginDate is null in leaderboard view
+                        null,
                         null
                 ))
                 .toList());

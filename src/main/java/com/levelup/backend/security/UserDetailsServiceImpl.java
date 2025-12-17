@@ -18,7 +18,6 @@ public class UserDetailsServiceImpl implements UserDetailsService {
     public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
         User u = userRepo.findByUsername(username)
                 .orElseThrow(() -> new UsernameNotFoundException("User not found: " + username));
-        // Use passwordHash from your entity
         return org.springframework.security.core.userdetails.User.withUsername(u.getUsername())
                 .password(u.getPasswordHash())
                 .authorities(Collections.emptyList())

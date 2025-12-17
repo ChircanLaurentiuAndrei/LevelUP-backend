@@ -24,7 +24,6 @@ public interface UserTaskRepository extends JpaRepository<UserTask, Long> {
                               @Param("newStatus") String newStatus,
                               @Param("timestamp") LocalDateTime timestamp);
 
-    // NEW METHOD: Delete only PENDING tasks for a user (keep COMPLETED ones for history)
     @Modifying
     @Query("DELETE FROM UserTask u WHERE u.user.id = :userId AND u.status = 'PENDING'")
     void deletePendingTasksByUserId(@Param("userId") Long userId);

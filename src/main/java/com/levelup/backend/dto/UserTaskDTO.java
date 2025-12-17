@@ -13,7 +13,6 @@ public class UserTaskDTO {
     Long userTaskId;
     String status;
 
-    // CHANGED: Rename field and type to match Entity
     LocalDate assignedDate;
 
     LocalDateTime completedAt;
@@ -23,10 +22,7 @@ public class UserTaskDTO {
         return UserTaskDTO.builder()
                 .userTaskId(userTask.getId())
                 .status(userTask.getStatus())
-
-                // CHANGED: Call the new getter method
                 .assignedDate(userTask.getAssignedDate())
-
                 .completedAt(userTask.getCompletedAt())
                 .task(TaskDetailDTO.fromEntity(userTask.getTask()))
                 .build();

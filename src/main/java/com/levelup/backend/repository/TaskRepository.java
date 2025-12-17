@@ -11,10 +11,8 @@ import java.util.List;
 @Repository
 public interface TaskRepository extends JpaRepository<Task, Long> {
 
-    // OLD METHOD (You can keep or remove)
     List<Task> findByStudyProgramIdOrStudyProgramIsNull(Long studyProgramId);
 
-    // NEW METHOD: Get X random tasks for a specific program + generic ones
     @Query(value = "SELECT * FROM tasks t " +
             "WHERE t.study_program_id = :programId OR t.study_program_id IS NULL " +
             "ORDER BY RANDOM() LIMIT :limit", nativeQuery = true)
