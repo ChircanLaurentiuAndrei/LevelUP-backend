@@ -3,13 +3,9 @@ package com.levelup.backend.service;
 import com.levelup.backend.dto.AuthResponse;
 import com.levelup.backend.dto.LoginRequest;
 import com.levelup.backend.dto.RegisterRequest;
-import com.levelup.backend.entity.Task;
 import com.levelup.backend.entity.User;
-import com.levelup.backend.entity.UserTask;
 import com.levelup.backend.entity.StudyProgram;
-import com.levelup.backend.repository.TaskRepository;
 import com.levelup.backend.repository.UserRepository;
-import com.levelup.backend.repository.UserTaskRepository;
 import com.levelup.backend.repository.StudyProgramRepository;
 import com.levelup.backend.security.JwtUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -21,7 +17,6 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
-import java.util.List;
 
 @Service
 public class AuthService {
@@ -30,19 +25,16 @@ public class AuthService {
     private UserRepository userRepo;
     @Autowired
     private StudyProgramRepository studyProgramRepo;
+
     @Autowired
-    private TaskRepository taskRepo;
-    @Autowired
-    private UserTaskRepository userTaskRepo;
+    private TaskService taskService;
+
     @Autowired
     private PasswordEncoder passwordEncoder;
     @Autowired
     private AuthenticationManager authenticationManager;
     @Autowired
     private JwtUtils jwtUtils;
-
-    // CONSTANT for the number of daily tasks
-    private static final int DAILY_TASK_LIMIT = 8;
 
     @Transactional
     public AuthResponse register(RegisterRequest req) {
@@ -67,7 +59,7 @@ public class AuthService {
 
         user = userRepo.save(user);
 
-        assignRandomTasks(user, sp.getId());
+        taskService.assignDailyTasks(user);
 
         String token = jwtUtils.generateToken(user.getUsername());
         return new AuthResponse(token, user.getUsername(), user.getId());
@@ -84,22 +76,16 @@ public class AuthService {
         LocalDateTime lastLoginTs = user.getLastLoginAt();
         LocalDate today = LocalDate.now();
 
-        // CHECK NEW DAY LOGIC
         if (lastLoginTs != null && lastLoginTs.toLocalDate().isBefore(today)) {
 
-            // 1. CLEAR YESTERDAY'S UNFINISHED TASKS
-            // We keep "COMPLETED" tasks for history/achievements, but remove "PENDING"
-            userTaskRepo.deletePendingTasksByUserId(user.getId());
+            taskService.cleanupPendingTasks(user.getId());
+            taskService.assignDailyTasks(user);
 
-            // 2. ASSIGN 8 NEW RANDOM TASKS FOR TODAY
-            assignRandomTasks(user, user.getStudyProgram().getId());
-
-            // 3. STREAK LOGIC
             LocalDate lastLoginDate = lastLoginTs.toLocalDate();
             if (lastLoginDate.isBefore(today.minusDays(1))) {
-                user.setStreak(1); // Reset streak
+                user.setStreak(1);
             } else {
-                user.setStreak(user.getStreak() + 1); // Increment streak
+                user.setStreak(user.getStreak() + 1);
             }
         }
         else if (lastLoginTs == null) {
@@ -111,19 +97,5 @@ public class AuthService {
 
         String token = jwtUtils.generateToken(user.getUsername());
         return new AuthResponse(token, user.getUsername(), user.getId());
-    }
-
-    // Helper method to keep code clean
-    private void assignRandomTasks(User user, Long studyProgramId) {
-        List<Task> randomTasks = taskRepo.findRandomTasks(studyProgramId, DAILY_TASK_LIMIT);
-
-        for (Task task : randomTasks) {
-            UserTask assignment = new UserTask();
-            assignment.setUser(user);
-            assignment.setTask(task);
-            assignment.setStatus("PENDING");
-            assignment.setAssignedDate(LocalDate.now());
-            userTaskRepo.save(assignment);
-        }
     }
 }
