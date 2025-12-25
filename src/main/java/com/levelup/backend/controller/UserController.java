@@ -66,7 +66,7 @@ public class UserController {
 
     @GetMapping("/leaderboard")
     public ResponseEntity<List<UserDTO>> getLeaderboard() {
-        return ResponseEntity.ok(userRepo.findAllByOrderByCurrentXpDesc().stream()
+        return ResponseEntity.ok(userRepo.findByRoleNotOrderByCurrentXpDesc("ADMIN").stream()
                 .map(u -> new UserDTO(
                         u.getId(),
                         u.getUsername(),
