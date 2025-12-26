@@ -1,7 +1,7 @@
 # 🚀 LevelUp – Backend API
 
 ![Java](https://img.shields.io/badge/Java-21-orange.svg)
-![Spring Boot](https://img.shields.io/badge/Spring%20Boot-4.0-green.svg)
+![Spring Boot](https://img.shields.io/badge/Spring%20Boot-4.0.0-green.svg)
 ![PostgreSQL](https://img.shields.io/badge/PostgreSQL-18+-336791.svg)
 ![License](https://img.shields.io/badge/license-MIT-blue.svg)
 
@@ -13,18 +13,18 @@ The robust server-side architecture for **LevelUp**, a platform that gamifies th
 
 ### 🎮 Gamification Engine
 * **XP & Leveling System**: Calculates experience points with a fixed threshold of **100 XP per level**.
-* **Dynamic Achievements**: Automatically unlocks badges based on criteria types like `TASK_COUNT`, `STREAK_DAYS`, `XP_TOTAL`, and `LEVEL_THRESHOLD`.
-* **Global Leaderboard**: Optimized queries to rank users, excluding Admins from the competition.
+* **Dynamic Achievements**: Automatically unlocks badges based on specific criteria types: `TASK_COUNT`, `LEVEL_THRESHOLD`, `XP_TOTAL`, and `STREAK_DAYS`.
+* **Global Leaderboard**: Optimized queries to rank users by XP, explicitly excluding Admins from the competition.
 
 ### 🧠 Intelligent Task Management
 * **Smart Assignment Algorithm**: Assigns a **daily limit of 8 tasks**. It prioritizes program-specific tasks (minimum 4) and fills the remainder with global quests.
-* **Async Verification**: Uses non-blocking threads (`@Async`) to simulate a **3-second grading process**, keeping the API responsive while processing happens in the background.
+* **Async Verification**: Uses non-blocking threads (`@Async`) to simulate a **3-second grading process**, awarding XP only after verification completes.
 * **Self-Healing Architecture**: Includes a startup routine (`CommandLineRunner`) that automatically detects and resets "stuck" tasks (tasks trapped in `VERIFYING` state) back to `PENDING`.
 
 ### 🔐 Security & Architecture
-* **Stateless Auth**: Full JWT (JSON Web Token) implementation with custom filters. Tokens are valid for **24 hours**.
+* **Stateless Auth**: Full JWT (JSON Web Token) implementation. Tokens are signed with HMAC-SHA and valid for **24 hours**.
 * **Role-Based Access Control (RBAC)**: Secure endpoints for standard `USER` and privileged `ADMIN` roles.
-* **Data Integrity**: Uses **Pessimistic Locking** (`PESSIMISTIC_WRITE`) to prevent race conditions during concurrent XP updates.
+* **Concurrency Control**: Uses **Pessimistic Locking** (`PESSIMISTIC_WRITE`) to prevent race conditions during concurrent XP updates.
 * **CORS Configured**: Pre-configured to allow requests from `http://localhost:5173` and `http://localhost:3000`.
 
 ---
@@ -33,9 +33,9 @@ The robust server-side architecture for **LevelUp**, a platform that gamifies th
 
 * **Core**: Java 21, Spring Boot 4.0.0 (Web, Security, Data JPA).
 * **Database**: PostgreSQL.
-* **Security**: Spring Security, JJWT (0.13.0), BCrypt.
+* **Security**: Spring Security, JJWT (0.13.0), BCrypt Password Encoder.
 * **Utilities**: Lombok, Jakarta Validation.
-* **Testing**: JUnit 5, Spring Boot Test.
+* **Testing**: JUnit 5, Spring Boot Test, Mockito.
 
 ---
 
@@ -76,3 +76,16 @@ The robust server-side architecture for **LevelUp**, a platform that gamifies th
 Create a local database named `levelup_db`.
 ```bash
 createdb levelup_db
+```
+*Note: The application is configured with `spring.jpa.hibernate.ddl-auto=none`, so you may need to ensure your schema is initialized if not using a migration tool.*
+
+### 3. Configuration
+The application is pre-configured in `src/main/resources/application.properties`.
+* **Database URL**: `jdbc:postgresql://localhost:5432/levelup_db`.
+* **JWT Secret**: Configured with a 256-bit+ secret key.
+
+### 4. Running the Application
+Use the Maven Wrapper to build and run the project:
+```bash
+./mvnw spring-boot:run
+```
