@@ -14,14 +14,13 @@ import java.util.List;
 @Service
 public class GamificationService {
 
+    public static final int XP_PER_LEVEL = 100;
     @Autowired
     private UserRepository userRepo;
     @Autowired
     private AchievementRepository achievementRepo;
     @Autowired
     private UserTaskRepository userTaskRepo;
-
-    public static final int XP_PER_LEVEL = 100;
 
     @Transactional
     public void processRewards(Long userId, Integer xpGained) {

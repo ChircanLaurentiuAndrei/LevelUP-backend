@@ -16,7 +16,9 @@ import java.util.Optional;
 public interface UserTaskRepository extends JpaRepository<UserTask, Long> {
 
     List<UserTask> findByUserId(Long userId);
+
     List<UserTask> findByUserIdAndStatus(Long userId, String status);
+
     Optional<UserTask> findByUserIdAndTaskIdAndStatus(Long userId, Long taskId, String status);
 
     @Modifying

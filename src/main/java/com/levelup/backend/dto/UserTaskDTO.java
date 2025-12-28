@@ -4,7 +4,7 @@ import com.levelup.backend.entity.UserTask;
 import lombok.Builder;
 import lombok.Value;
 
-import java.time.LocalDate;       // Changed from LocalDateTime
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 
 @Value

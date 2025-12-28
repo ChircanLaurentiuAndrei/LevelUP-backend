@@ -15,6 +15,7 @@ import java.util.Optional;
 public interface UserRepository extends JpaRepository<User, Long> {
 
     Optional<User> findByUsername(String username);
+
     Optional<User> findByEmail(String email);
 
     @Query("SELECT u FROM User u LEFT JOIN FETCH u.studyProgram WHERE u.username = :username")
@@ -22,6 +23,7 @@ public interface UserRepository extends JpaRepository<User, Long> {
 
     @Query("SELECT u FROM User u LEFT JOIN FETCH u.studyProgram LEFT JOIN FETCH u.unlockedAchievements WHERE u.username = :username")
     Optional<User> findByUsernameWithAchievements(@Param("username") String username);
+
     @Lock(LockModeType.PESSIMISTIC_WRITE)
     @Query("SELECT u FROM User u LEFT JOIN FETCH u.unlockedAchievements WHERE u.id = :id")
     Optional<User> findByIdWithLock(@Param("id") Long id);

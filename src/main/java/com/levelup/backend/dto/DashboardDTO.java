@@ -1,8 +1,8 @@
 package com.levelup.backend.dto;
 
-import com.levelup.backend.entity.UserTask;
-import com.levelup.backend.entity.User;
 import com.levelup.backend.entity.Achievement;
+import com.levelup.backend.entity.User;
+import com.levelup.backend.entity.UserTask;
 import com.levelup.backend.service.GamificationService;
 import lombok.Builder;
 import lombok.Value;

@@ -3,13 +3,14 @@ package com.levelup.backend.service;
 import com.levelup.backend.dto.AuthResponse;
 import com.levelup.backend.dto.LoginRequest;
 import com.levelup.backend.dto.RegisterRequest;
-import com.levelup.backend.entity.User;
 import com.levelup.backend.entity.StudyProgram;
-import com.levelup.backend.repository.UserRepository;
+import com.levelup.backend.entity.User;
 import com.levelup.backend.repository.StudyProgramRepository;
+import com.levelup.backend.repository.UserRepository;
 import com.levelup.backend.security.JwtUtils;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.security.authentication.*;
+import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -84,8 +85,7 @@ public class AuthService {
             } else {
                 user.setStreak(user.getStreak() + 1);
             }
-        }
-        else if (lastLoginTs == null) {
+        } else if (lastLoginTs == null) {
             user.setStreak(1);
         }
 

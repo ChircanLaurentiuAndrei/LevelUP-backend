@@ -17,14 +17,12 @@ import java.util.List;
 @Service
 public class TaskService {
 
-    @Autowired
-    private TaskRepository taskRepo;
-
-    @Autowired
-    private UserTaskRepository userTaskRepo;
-
     private static final int DAILY_TASK_LIMIT = 8;
     private static final int MIN_PROGRAM_TASKS = 4;
+    @Autowired
+    private TaskRepository taskRepo;
+    @Autowired
+    private UserTaskRepository userTaskRepo;
 
     @Transactional
     public void assignDailyTasks(User user) {
