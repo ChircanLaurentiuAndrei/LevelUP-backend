@@ -73,15 +73,15 @@ The robust server-side architecture for **LevelUp**, a platform that gamifies th
 * **PostgreSQL** installed and running on port `5432`.
 
 ### 2. Database Setup
-Create a local database named `levelup_db`.
+Create a local database named `levelup`.
 ```bash
-createdb levelup_db
+createdb levelup
 ```
 *Note: The application is configured with `spring.jpa.hibernate.ddl-auto=none`, so you may need to ensure your schema is initialized if not using a migration tool.*
 
 ### 3. Configuration
 The application is pre-configured in `src/main/resources/application.properties`.
-* **Database URL**: `jdbc:postgresql://localhost:5432/levelup_db`.
+* **Database URL**: `jdbc:postgresql://localhost:5432/levelup`.
 * **JWT Secret**: Configured with a 256-bit+ secret key.
 
 ### 4. Running the Application
