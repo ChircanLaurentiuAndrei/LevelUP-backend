@@ -1,9 +1,9 @@
 package com.levelup.backend.entity;
 
 
+import com.levelup.backend.enums.TaskStatus;
 import jakarta.persistence.*;
 import lombok.Data;
-import org.hibernate.annotations.ColumnDefault;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -24,8 +24,9 @@ public class UserTask {
     @JoinColumn(name = "task_id", nullable = false)
     private Task task;
 
-    @ColumnDefault("'PENDING'")
-    private String status = "PENDING";
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
+    private TaskStatus status = TaskStatus.PENDING;
 
     private LocalDate assignedDate = LocalDate.now();
     private LocalDateTime completedAt;

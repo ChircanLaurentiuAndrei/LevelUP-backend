@@ -1,6 +1,7 @@
 package com.levelup.backend.service;
 
 import com.levelup.backend.entity.UserTask;
+import com.levelup.backend.enums.TaskStatus;
 import com.levelup.backend.repository.UserTaskRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.Async;
@@ -20,19 +21,19 @@ public class VerificationService {
     @Transactional
     public void verifyTaskInBackground(Long userTaskId) {
         try {
-            System.out.println("🧵 [Thread-" + Thread.currentThread().getId() + "] Started verifying Task ID: " + userTaskId);
+            System.out.println("🧵 [Thread-" + Thread.currentThread().threadId() + "] Started verifying Task ID: " + userTaskId);
 
             Thread.sleep(3000);
 
             UserTask userTask = userTaskRepo.findById(userTaskId)
                     .orElseThrow(() -> new IllegalArgumentException("Task not found during verification"));
 
-            userTask.setStatus("COMPLETED");
+            userTask.setStatus(TaskStatus.COMPLETED);
             userTaskRepo.save(userTask);
 
             gamificationService.processRewards(userTask.getUser().getId(), userTask.getTask().getXpReward());
 
-            System.out.println("✅ [Thread-" + Thread.currentThread().getId() + "] Verification complete. XP Awarded.");
+            System.out.println("✅ [Thread-" + Thread.currentThread().threadId() + "] Verification complete. XP Awarded.");
 
         } catch (InterruptedException e) {
             Thread.currentThread().interrupt();

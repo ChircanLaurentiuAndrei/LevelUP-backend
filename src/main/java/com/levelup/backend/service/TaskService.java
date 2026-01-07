@@ -3,6 +3,7 @@ package com.levelup.backend.service;
 import com.levelup.backend.entity.Task;
 import com.levelup.backend.entity.User;
 import com.levelup.backend.entity.UserTask;
+import com.levelup.backend.enums.TaskStatus;
 import com.levelup.backend.repository.TaskRepository;
 import com.levelup.backend.repository.UserTaskRepository;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -47,7 +48,7 @@ public class TaskService {
             UserTask assignment = new UserTask();
             assignment.setUser(user);
             assignment.setTask(task);
-            assignment.setStatus("PENDING");
+            assignment.setStatus(TaskStatus.PENDING);
             assignment.setAssignedDate(LocalDate.now());
             userTaskRepo.save(assignment);
         }

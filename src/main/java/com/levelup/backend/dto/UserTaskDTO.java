@@ -1,6 +1,7 @@
 package com.levelup.backend.dto;
 
 import com.levelup.backend.entity.UserTask;
+import com.levelup.backend.enums.TaskStatus;
 import lombok.Builder;
 import lombok.Value;
 
@@ -11,10 +12,8 @@ import java.time.LocalDateTime;
 @Builder
 public class UserTaskDTO {
     Long userTaskId;
-    String status;
-
+    TaskStatus status;
     LocalDate assignedDate;
-
     LocalDateTime completedAt;
     TaskDetailDTO task;
 

@@ -2,6 +2,7 @@ package com.levelup.backend.service;
 
 import com.levelup.backend.entity.Achievement;
 import com.levelup.backend.entity.User;
+import com.levelup.backend.enums.TaskStatus;
 import com.levelup.backend.repository.AchievementRepository;
 import com.levelup.backend.repository.UserRepository;
 import com.levelup.backend.repository.UserTaskRepository;
@@ -41,23 +42,23 @@ public class GamificationService {
 
     private void checkAchievements(User user) {
         List<Achievement> allAchievements = achievementRepo.findAll();
-        long completedTasksCount = userTaskRepo.findByUserIdAndStatus(user.getId(), "COMPLETED").size();
+        long completedTasksCount = userTaskRepo.findByUserIdAndStatus(user.getId(), TaskStatus.COMPLETED).size();
 
         for (Achievement ach : allAchievements) {
             if (user.getUnlockedAchievements().contains(ach)) continue;
 
             boolean unlocked = false;
             switch (ach.getCriteriaType()) {
-                case "TASK_COUNT":
+                case TASK_COUNT:
                     if (completedTasksCount >= ach.getConditionValue()) unlocked = true;
                     break;
-                case "LEVEL_THRESHOLD":
+                case LEVEL_THRESHOLD:
                     if (user.getCurrentLevel() >= ach.getConditionValue()) unlocked = true;
                     break;
-                case "XP_TOTAL":
+                case XP_TOTAL:
                     if (user.getCurrentXp() >= ach.getConditionValue()) unlocked = true;
                     break;
-                case "STREAK_DAYS":
+                case STREAK_DAYS:
                     if (user.getStreak() >= ach.getConditionValue()) unlocked = true;
                     break;
             }

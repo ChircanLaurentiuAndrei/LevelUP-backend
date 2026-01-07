@@ -1,5 +1,6 @@
 package com.levelup.backend.entity;
 
+import com.levelup.backend.enums.AchievementType;
 import jakarta.persistence.*;
 import lombok.Data;
 
@@ -17,8 +18,9 @@ public class Achievement {
 
     private String description;
 
+    @Enumerated(EnumType.STRING)
     @Column(nullable = false)
-    private String criteriaType;
+    private AchievementType criteriaType;
 
     private Integer conditionValue;
 }
