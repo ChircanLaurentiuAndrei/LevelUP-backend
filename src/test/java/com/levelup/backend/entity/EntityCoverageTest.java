@@ -1,5 +1,7 @@
 package com.levelup.backend.entity;
 
+import com.levelup.backend.enums.AchievementType;
+import com.levelup.backend.enums.TaskStatus;
 import org.junit.jupiter.api.Test;
 import java.time.LocalDate;
 import static org.junit.jupiter.api.Assertions.*;
@@ -22,7 +24,7 @@ class EntityCoverageTest {
     void testAchievementEntity() {
         Achievement ach = new Achievement();
         ach.setName("Novice");
-        ach.setCriteriaType("XP_TOTAL");
+        ach.setCriteriaType(AchievementType.XP_TOTAL);
         ach.setConditionValue(100);
 
         assertNotNull(ach);
@@ -33,11 +35,11 @@ class EntityCoverageTest {
     @Test
     void testUserTaskEntity() {
         UserTask ut = new UserTask();
-        ut.setStatus("PENDING");
+        ut.setStatus(TaskStatus.PENDING);
         ut.setAssignedDate(LocalDate.now());
 
         assertNotNull(ut);
-        assertEquals("PENDING", ut.getStatus());
+        assertEquals(TaskStatus.PENDING, ut.getStatus());
         assertNotNull(ut.getAssignedDate());
     }
 
