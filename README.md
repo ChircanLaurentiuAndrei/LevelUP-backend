@@ -73,11 +73,16 @@ The robust server-side architecture for **LevelUp**, a platform that gamifies th
 * **PostgreSQL** installed and running on port `5432`.
 
 ### 2. Database Setup
-Create a local database named `levelup`.
+You must create the database and import the provided SQL file to initialize the schema and seed the initial data (Achievements, Study Programs, and Tasks).
+
 ```bash
+# 1. Create a local database
 createdb levelup
+
+# 2. Import schema and data (using psql)
+psql -U postgres -d levelup -f levelup_db.sql
 ```
-*Note: The application is configured with `spring.jpa.hibernate.ddl-auto=none`, so you may need to ensure your schema is initialized if not using a migration tool.*
+*Note: The application is configured with `spring.jpa.hibernate.ddl-auto=none`, so you **must** run the SQL script before starting the application, otherwise tables will not exist.*
 
 ### 3. Configuration
 The application is pre-configured in `src/main/resources/application.properties`.
