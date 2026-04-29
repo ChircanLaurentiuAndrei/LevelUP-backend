@@ -1,96 +1,91 @@
-# 🚀 LevelUp – Backend API
+# 🚀 LevelUp – Backend API (Supabase Edition)
 
 ![Java](https://img.shields.io/badge/Java-21-orange.svg)
 ![Spring Boot](https://img.shields.io/badge/Spring%20Boot-4.0.0-green.svg)
-![PostgreSQL](https://img.shields.io/badge/PostgreSQL-18+-336791.svg)
+![Supabase](https://img.shields.io/badge/Supabase-Auth%20%26%20DB-3ec988.svg)
 ![License](https://img.shields.io/badge/license-MIT-blue.svg)
 
-The robust server-side architecture for **LevelUp**, a platform that gamifies the student experience. This RESTful API orchestrates user progression, secure authentication, and real-time task management using a modern Java stack.
+The robust server-side architecture for **LevelUp**, a platform that gamifies the student experience. This RESTful API orchestrates user progression and real-time task management, now fully integrated with **Supabase** for identity and data storage.
 
 ---
 
 ## ✨ Key Features
 
 ### 🎮 Gamification Engine
-* **XP & Leveling System**: Calculates experience points with a fixed threshold of **100 XP per level**.
-* **Dynamic Achievements**: Automatically unlocks badges based on specific criteria types: `TASK_COUNT`, `LEVEL_THRESHOLD`, `XP_TOTAL`, and `STREAK_DAYS`.
-* **Global Leaderboard**: Optimized queries to rank users by XP, explicitly excluding Admins from the competition.
+* **XP & Leveling System**: Calculates experience points based on a configurable threshold (Default: **100 XP per level**).
+* **Dynamic Achievements**: Automatically unlocks badges based on criteria like `TASK_COUNT`, `LEVEL_THRESHOLD`, `XP_TOTAL`, and `STREAK_DAYS`.
+* **Global Leaderboard**: Optimized server-side ranking that explicitly excludes administrators.
 
 ### 🧠 Intelligent Task Management
-* **Smart Assignment Algorithm**: Assigns a **daily limit of 8 tasks**. It prioritizes program-specific tasks (minimum 4) and fills the remainder with global quests.
-* **Async Verification**: Uses non-blocking threads (`@Async`) to simulate a **3-second grading process**, awarding XP only after verification completes.
-* **Self-Healing Architecture**: Includes a startup routine (`CommandLineRunner`) that automatically detects and resets "stuck" tasks (tasks trapped in `VERIFYING` state) back to `PENDING`.
+* **Smart Assignment Algorithm**: Assigns a **daily limit of 8 tasks**, prioritizing program-specific quests.
+* **Async Verification**: Uses non-blocking threads (`@Async`) to simulate a grading process, awarding XP only after verification completes.
+* **Resilient Lifecycle**: Includes a startup routine and runtime fallbacks to recover tasks from failed verification states.
 
-### 🔐 Security & Architecture
-* **Stateless Auth**: Full JWT (JSON Web Token) implementation. Tokens are signed with HMAC-SHA and valid for **24 hours**.
-* **Role-Based Access Control (RBAC)**: Secure endpoints for standard `USER` and privileged `ADMIN` roles.
-* **Concurrency Control**: Uses **Pessimistic Locking** (`PESSIMISTIC_WRITE`) to prevent race conditions during concurrent XP updates.
-* **CORS Configured**: Pre-configured to allow requests from `http://localhost:5173` and `http://localhost:3000`.
+### 🔐 Modern Architecture
+* **Supabase Integration**: Leverages Supabase Auth (GoTrue) for identity. Internal data is mapped to the `profiles` table linked via **UUID**.
+* **Stateless Resource Server**: Acts as a secure resource server that validates Supabase-issued JWTs.
+* **Java 21 Modernization**: Utilizes **Records** for immutable DTOs and **Pattern Matching** for cleaner business logic.
+* **Strict Layering**: Enforces a service-centric architecture with constructor injection and standardized global error handling.
 
 ---
 
 ## 🛠️ Tech Stack
 
-* **Core**: Java 21, Spring Boot 4.0.0 (Web, Security, Data JPA).
-* **Database**: PostgreSQL.
-* **Security**: Spring Security, JJWT (0.13.0), BCrypt Password Encoder.
-* **Utilities**: Lombok, Jakarta Validation.
-* **Testing**: JUnit 5, Spring Boot Test, Mockito.
+* **Core**: Java 21, Spring Boot 4.0.0.
+* **Infrastructure**: Supabase (PostgreSQL + Auth).
+* **Security**: Spring Security (JWT Validation), RBAC.
+* **Utilities**: Lombok, Jakarta Validation, @ConfigurationProperties.
+* **Database**: PostgreSQL (UUID Primary Keys, Identity Columns).
 
 ---
 
 ## 📡 API Endpoints
 
-### 🟢 Authentication
+### 🟢 Metadata (Public/Auth)
 | Method | Endpoint | Description |
 | :--- | :--- | :--- |
-| **POST** | `/api/auth/register` | Register a new student and trigger initial task assignment. |
-| **POST** | `/api/auth/login` | Authenticate user, auto-calculate streaks, and return JWT. |
-| **GET** | `/api/auth/study-programs` | List all available faculties/majors. |
+| **GET** | `/api/auth/study-programs` | List all available study programs for onboarding. |
 
-### 🟡 Core Features (User)
+### 🟡 Core Features (Authenticated User)
 | Method | Endpoint | Description |
 | :--- | :--- | :--- |
-| **GET** | `/api/dashboard` | Get current user stats, level progress, and daily task list. |
-| **POST** | `/api/tasks/{id}/complete` | Submit a task. Triggers background verification thread. |
-| **GET** | `/api/user/me` | Fetch full user profile and unlocked achievement IDs. |
-| **GET** | `/api/user/leaderboard` | Retrieve the global ranking of top students. |
-| **GET** | `/api/user/achievements` | List all available achievements in the game. |
+| **GET** | `/api/dashboard` | Get stats, level progress, and active daily tasks. |
+| **POST** | `/api/tasks/{id}/complete` | Submit a task for background verification. |
+| **GET** | `/api/user/me` | Fetch full profile and unlocked achievements. |
+| **GET** | `/api/user/leaderboard` | Retrieve global student rankings. |
 
-### 🔴 Administration
+### 🔴 Administration (Admin Only)
 | Method | Endpoint | Description |
 | :--- | :--- | :--- |
-| **GET** | `/api/admin/users` | List all users in the system. |
-| **PUT** | `/api/admin/users/{id}` | Update user details (Level, XP, Streak, Role). |
-| **DELETE** | `/api/admin/users/{id}` | Permanently delete a user. |
+| **GET** | `/api/admin/users` | List all registered profiles. |
+| **PUT** | `/api/admin/users/{uuid}` | Update user stats (Level, XP, Streak, Role). |
+| **DELETE** | `/api/admin/users/{uuid}` | Permanently delete a user profile. |
+
+*Note: Authentication (Signup/Login) is handled directly via Supabase Auth on the client side.*
 
 ---
 
-## 🚀 Getting Started
+## 🚀 Setup & Configuration
 
-### 1. Prerequisites
-* **Java JDK 21** installed.
-* **PostgreSQL** installed and running on port `5432`.
+### 1. Supabase Setup
+1. Create a new project on [Supabase](https://supabase.com).
+2. Run the provided SQL schema (refer to Supabase setup notes) to initialize the `profiles`, `tasks`, `achievements`, and RLS policies.
+3. Configure the trigger for automatic profile creation on signup.
 
-### 2. Database Setup
-You must create the database and import the provided SQL file to initialize the schema and seed the initial data (Achievements, Study Programs, and Tasks).
+### 2. Environment Variables
+Create a `.env` file in the root directory (or set environment variables) with the following keys:
 
-```bash
-# 1. Create a local database
-createdb levelup
+```env
+# Supabase Database Credentials
+SUPABASE_DB_PASSWORD=your_db_password
+SUPABASE_DB_URL=jdbc:postgresql://db.[your-id].supabase.co:5432/postgres
 
-# 2. Import schema and data (using psql)
-psql -U postgres -d levelup -f levelup_db.sql
+# Supabase Auth Secrets
+SUPABASE_JWT_SECRET=your_supabase_jwt_secret
 ```
-*Note: The application is configured with `spring.jpa.hibernate.ddl-auto=none`, so you **must** run the SQL script before starting the application, otherwise tables will not exist.*
 
-### 3. Configuration
-The application is pre-configured in `src/main/resources/application.properties`.
-* **Database URL**: `jdbc:postgresql://localhost:5432/levelup`.
-* **JWT Secret**: Configured with a 256-bit+ secret key.
-
-### 4. Running the Application
-Use the Maven Wrapper to build and run the project:
+### 3. Running the Application
+Ensure the environment variables are loaded and run:
 ```bash
 ./mvnw spring-boot:run
 ```
