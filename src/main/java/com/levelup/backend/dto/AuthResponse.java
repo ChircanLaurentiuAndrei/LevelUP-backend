@@ -1,13 +1,10 @@
 package com.levelup.backend.dto;
 
-import lombok.AllArgsConstructor;
-import lombok.Data;
+import java.util.UUID;
 
-@Data
-@AllArgsConstructor
-public class AuthResponse {
-    private String token;
-    private String username;
-    private Long userId;
-    private String role;
-}
+public record AuthResponse(
+    String token,
+    String username,
+    UUID userId,
+    String role
+) {}

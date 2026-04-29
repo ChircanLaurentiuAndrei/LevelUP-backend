@@ -1,36 +1,37 @@
 package com.levelup.backend.service;
 
+import com.levelup.backend.config.GamificationProperties;
 import com.levelup.backend.entity.Achievement;
 import com.levelup.backend.entity.User;
 import com.levelup.backend.enums.TaskStatus;
+import com.levelup.backend.exception.ResourceNotFoundException;
 import com.levelup.backend.repository.AchievementRepository;
 import com.levelup.backend.repository.UserRepository;
 import com.levelup.backend.repository.UserTaskRepository;
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import java.util.UUID;
 
 @Service
+@RequiredArgsConstructor
 public class GamificationService {
 
-    public static final int XP_PER_LEVEL = 100;
-    @Autowired
-    private UserRepository userRepo;
-    @Autowired
-    private AchievementRepository achievementRepo;
-    @Autowired
-    private UserTaskRepository userTaskRepo;
+    private final GamificationProperties props;
+    private final UserRepository userRepo;
+    private final AchievementRepository achievementRepo;
+    private final UserTaskRepository userTaskRepo;
 
     @Transactional
-    public void processRewards(Long userId, Integer xpGained) {
+    public void processRewards(UUID userId, Integer xpGained) {
         User user = userRepo.findByIdWithLock(userId)
-                .orElseThrow(() -> new IllegalArgumentException("User not found"));
+                .orElseThrow(() -> new ResourceNotFoundException("User not found with ID: " + userId));
 
         user.setCurrentXp(user.getCurrentXp() + xpGained);
 
-        int newLevel = (user.getCurrentXp() / XP_PER_LEVEL) + 1;
+        int newLevel = (user.getCurrentXp() / props.xpPerLevel()) + 1;
         if (newLevel > user.getCurrentLevel()) {
             user.setCurrentLevel(newLevel);
         }
@@ -47,21 +48,12 @@ public class GamificationService {
         for (Achievement ach : allAchievements) {
             if (user.getUnlockedAchievements().contains(ach)) continue;
 
-            boolean unlocked = false;
-            switch (ach.getCriteriaType()) {
-                case TASK_COUNT:
-                    if (completedTasksCount >= ach.getConditionValue()) unlocked = true;
-                    break;
-                case LEVEL_THRESHOLD:
-                    if (user.getCurrentLevel() >= ach.getConditionValue()) unlocked = true;
-                    break;
-                case XP_TOTAL:
-                    if (user.getCurrentXp() >= ach.getConditionValue()) unlocked = true;
-                    break;
-                case STREAK_DAYS:
-                    if (user.getStreak() >= ach.getConditionValue()) unlocked = true;
-                    break;
-            }
+            boolean unlocked = switch (ach.getCriteriaType()) {
+                case TASK_COUNT -> completedTasksCount >= ach.getConditionValue();
+                case LEVEL_THRESHOLD -> user.getCurrentLevel() >= ach.getConditionValue();
+                case XP_TOTAL -> user.getCurrentXp() >= ach.getConditionValue();
+                case STREAK_DAYS -> user.getStreak() >= ach.getConditionValue();
+            };
 
             if (unlocked) {
                 user.getUnlockedAchievements().add(ach);

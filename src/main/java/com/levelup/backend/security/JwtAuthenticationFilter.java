@@ -1,25 +1,27 @@
 package com.levelup.backend.security;
 
+import com.levelup.backend.entity.User;
+import com.levelup.backend.repository.UserRepository;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.RequiredArgsConstructor;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
-import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.web.filter.OncePerRequestFilter;
 
 import java.io.IOException;
+import java.util.List;
+import java.util.UUID;
 
+@RequiredArgsConstructor
 public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
-    @Autowired
-    private JwtUtils jwtUtils;
-
-    @Autowired
-    private UserDetailsService userDetailsService;
+    private final JwtUtils jwtUtils;
+    private final UserRepository userRepository;
 
     private String parseJwt(HttpServletRequest req) {
         String header = req.getHeader("Authorization");
@@ -36,15 +38,19 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         try {
             String token = parseJwt(request);
             if (token != null && jwtUtils.validateJwtToken(token)) {
-                String username = jwtUtils.getUsernameFromJwtToken(token);
+                UUID userId = jwtUtils.getUserIdFromJwtToken(token);
 
-                try {
-                    UserDetails userDetails = userDetailsService.loadUserByUsername(username);
+                User user = userRepository.findById(userId).orElse(null);
+                if (user != null) {
+                    UserDetails userDetails = org.springframework.security.core.userdetails.User
+                            .withUsername(user.getUsername())
+                            .password("")
+                            .authorities(List.of(new SimpleGrantedAuthority("ROLE_" + user.getRole())))
+                            .build();
+
                     UsernamePasswordAuthenticationToken auth =
                             new UsernamePasswordAuthenticationToken(userDetails, null, userDetails.getAuthorities());
                     SecurityContextHolder.getContext().setAuthentication(auth);
-                } catch (org.springframework.security.core.userdetails.UsernameNotFoundException e) {
-                    logger.warn("User " + username + " not found in database, ignoring token.");
                 }
             }
         } catch (Exception e) {

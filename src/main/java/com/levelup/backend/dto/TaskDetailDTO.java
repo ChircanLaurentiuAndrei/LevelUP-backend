@@ -1,25 +1,21 @@
 package com.levelup.backend.dto;
 
 import com.levelup.backend.entity.Task;
-import lombok.Builder;
-import lombok.Value;
 
-@Value
-@Builder
-public class TaskDetailDTO {
-    Long id;
-    String title;
-    String description;
-    String category;
-    Integer xpReward;
-
+public record TaskDetailDTO(
+    Long id,
+    String title,
+    String description,
+    String category,
+    Integer xpReward
+) {
     public static TaskDetailDTO fromEntity(Task task) {
-        return TaskDetailDTO.builder()
-                .id(task.getId())
-                .title(task.getTitle())
-                .description(task.getDescription())
-                .category(task.getCategory())
-                .xpReward(task.getXpReward())
-                .build();
+        return new TaskDetailDTO(
+            task.getId(),
+            task.getTitle(),
+            task.getDescription(),
+            task.getCategory(),
+            task.getXpReward()
+        );
     }
 }

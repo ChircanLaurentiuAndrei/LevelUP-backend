@@ -1,29 +1,46 @@
 package com.levelup.backend.service;
 
+import com.levelup.backend.config.GamificationProperties;
+import com.levelup.backend.dto.DashboardDTO;
 import com.levelup.backend.entity.Task;
 import com.levelup.backend.entity.User;
 import com.levelup.backend.entity.UserTask;
 import com.levelup.backend.enums.TaskStatus;
+import com.levelup.backend.exception.BusinessException;
+import com.levelup.backend.exception.ResourceNotFoundException;
+import com.levelup.backend.exception.UnauthorizedActionException;
 import com.levelup.backend.repository.TaskRepository;
+import com.levelup.backend.repository.UserRepository;
 import com.levelup.backend.repository.UserTaskRepository;
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.UUID;
 
 @Service
+@RequiredArgsConstructor
 public class TaskService {
 
-    private static final int DAILY_TASK_LIMIT = 8;
-    private static final int MIN_PROGRAM_TASKS = 4;
-    @Autowired
-    private TaskRepository taskRepo;
-    @Autowired
-    private UserTaskRepository userTaskRepo;
+    private final GamificationProperties props;
+    private final TaskRepository taskRepo;
+    private final UserTaskRepository userTaskRepo;
+    private final UserRepository userRepo;
+    private final VerificationService verificationService;
+
+    @Transactional(readOnly = true)
+    public DashboardDTO getDashboard(String username) {
+        User user = userRepo.findByUsernameWithStudyProgram(username)
+                .orElseThrow(() -> new ResourceNotFoundException("User not found: " + username));
+
+        List<UserTask> tasks = userTaskRepo.findByUserIdWithTask(user.getId());
+        return DashboardDTO.fromUserAndTasks(user, tasks, props.xpPerLevel());
+    }
 
     @Transactional
     public void assignDailyTasks(User user) {
@@ -31,11 +48,11 @@ public class TaskService {
         List<Task> selectedTasks = new ArrayList<>();
 
         if (studyProgramId != null) {
-            List<Task> programTasks = taskRepo.findRandomTasksByProgram(studyProgramId, MIN_PROGRAM_TASKS);
+            List<Task> programTasks = taskRepo.findRandomTasksByProgram(studyProgramId, props.minProgramTasks());
             selectedTasks.addAll(programTasks);
         }
 
-        int remainingSlots = DAILY_TASK_LIMIT - selectedTasks.size();
+        int remainingSlots = props.dailyTaskLimit() - selectedTasks.size();
 
         if (remainingSlots > 0) {
             List<Task> globalTasks = taskRepo.findRandomGlobalTasks(remainingSlots);
@@ -55,7 +72,25 @@ public class TaskService {
     }
 
     @Transactional
-    public void cleanupPendingTasks(Long userId) {
+    public void completeTask(Long userTaskId, String username) {
+        UserTask ut = userTaskRepo.findById(userTaskId)
+                .orElseThrow(() -> new ResourceNotFoundException("Task not found with ID: " + userTaskId));
+
+        if (!ut.getUser().getUsername().equals(username)) {
+            throw new UnauthorizedActionException("This task does not belong to you");
+        }
+
+        int updatedRows = userTaskRepo.updateStatusIfPending(userTaskId, TaskStatus.VERIFYING, LocalDateTime.now());
+
+        if (updatedRows == 0) {
+            throw new BusinessException("Task is already completed or under verification");
+        }
+
+        verificationService.verifyTaskInBackground(ut.getId());
+    }
+
+    @Transactional
+    public void cleanupPendingTasks(UUID userId) {
         userTaskRepo.deletePendingTasksByUserId(userId);
     }
 }

@@ -11,26 +11,28 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.UUID;
 
 @Repository
 public interface UserTaskRepository extends JpaRepository<UserTask, Long> {
 
-    List<UserTask> findByUserId(Long userId);
+    @Query("SELECT ut FROM UserTask ut JOIN FETCH ut.task WHERE ut.user.id = :userId")
+    List<UserTask> findByUserIdWithTask(@Param("userId") UUID userId);
 
-    List<UserTask> findByUserIdAndStatus(Long userId, TaskStatus status);
+    List<UserTask> findByUserIdAndStatus(UUID userId, TaskStatus status);
 
     @Modifying
-    @Query("UPDATE UserTask u SET u.status = :newStatus, u.completedAt = :timestamp WHERE u.id = :id AND u.status = 'PENDING'")
+    @Query("UPDATE UserTask u SET u.status = :newStatus, u.completedAt = :timestamp WHERE u.id = :id AND u.status = com.levelup.backend.enums.TaskStatus.PENDING")
     int updateStatusIfPending(@Param("id") Long id,
-                              @Param("newStatus") TaskStatus newStatus, // Change type here
+                              @Param("newStatus") TaskStatus newStatus,
                               @Param("timestamp") LocalDateTime timestamp);
 
     @Modifying
-    @Query("DELETE FROM UserTask u WHERE u.user.id = :userId AND u.status = 'PENDING'")
-    void deletePendingTasksByUserId(@Param("userId") Long userId);
+    @Query("DELETE FROM UserTask u WHERE u.user.id = :userId AND u.status = com.levelup.backend.enums.TaskStatus.PENDING")
+    void deletePendingTasksByUserId(@Param("userId") UUID userId);
 
     @Modifying
     @Transactional
-    @Query("UPDATE UserTask u SET u.status = 'PENDING' WHERE u.status = 'VERIFYING'")
+    @Query("UPDATE UserTask u SET u.status = com.levelup.backend.enums.TaskStatus.PENDING WHERE u.status = com.levelup.backend.enums.TaskStatus.VERIFYING")
     int resetStuckTasks();
 }

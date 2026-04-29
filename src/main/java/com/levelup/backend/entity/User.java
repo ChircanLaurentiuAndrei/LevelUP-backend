@@ -6,29 +6,38 @@ import lombok.Data;
 
 import java.time.LocalDateTime;
 import java.util.Set;
+import java.util.UUID;
 
 @Entity
-@Table(name = "users")
+@Table(name = "profiles")
 @Data
-@JsonIgnoreProperties({"unlockedAchievements", "passwordHash"})
+@JsonIgnoreProperties({"unlockedAchievements"})
 public class User {
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+    private UUID id;
 
     @Column(nullable = false, unique = true)
     private String username;
 
-    @Column(nullable = false, unique = true)
+    @Column(unique = true)
     private String email;
 
-    @Column(nullable = false)
-    private String passwordHash;
+    private String fullName;
+    private String avatarUrl;
 
+    @Column(name = "current_xp")
     private Integer currentXp = 0;
+
+    @Column(name = "current_level")
     private Integer currentLevel = 1;
+
     private Integer streak = 0;
-    private LocalDateTime lastLoginAt;
+
+    @Column(name = "updated_at")
+    private LocalDateTime updatedAt;
+
+    @Column(name = "created_at")
+    private LocalDateTime createdAt;
 
     @ManyToOne
     @JoinColumn(name = "study_program_id")

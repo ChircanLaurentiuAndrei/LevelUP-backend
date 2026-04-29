@@ -10,9 +10,10 @@ import org.springframework.stereotype.Repository;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.UUID;
 
 @Repository
-public interface UserRepository extends JpaRepository<User, Long> {
+public interface UserRepository extends JpaRepository<User, UUID> {
 
     Optional<User> findByUsername(String username);
 
@@ -26,7 +27,8 @@ public interface UserRepository extends JpaRepository<User, Long> {
 
     @Lock(LockModeType.PESSIMISTIC_WRITE)
     @Query("SELECT u FROM User u LEFT JOIN FETCH u.unlockedAchievements WHERE u.id = :id")
-    Optional<User> findByIdWithLock(@Param("id") Long id);
+    Optional<User> findByIdWithLock(@Param("id") UUID id);
 
-    List<User> findByRoleNotOrderByCurrentXpDesc(String role);
+    @Query("SELECT u FROM User u WHERE u.role != :role ORDER BY u.currentXp DESC")
+    List<User> findLeaderboard(@Param("role") String role);
 }

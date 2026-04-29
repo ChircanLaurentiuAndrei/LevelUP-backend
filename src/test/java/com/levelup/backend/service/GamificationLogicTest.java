@@ -1,9 +1,11 @@
 package com.levelup.backend.service;
 
+import com.levelup.backend.config.GamificationProperties;
 import com.levelup.backend.entity.User;
 import com.levelup.backend.repository.AchievementRepository;
 import com.levelup.backend.repository.UserRepository;
 import com.levelup.backend.repository.UserTaskRepository;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -29,8 +31,16 @@ class GamificationLogicTest {
     @Mock
     private UserTaskRepository userTaskRepo;
 
+    @Mock
+    private GamificationProperties props;
+
     @InjectMocks
     private GamificationService gamificationService;
+
+    @BeforeEach
+    void setup() {
+        lenient().when(props.xpPerLevel()).thenReturn(100);
+    }
 
     @Test
     void testXpGainAndLevelUp() {
