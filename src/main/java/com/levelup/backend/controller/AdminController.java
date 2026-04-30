@@ -1,5 +1,6 @@
 package com.levelup.backend.controller;
 
+import com.levelup.backend.dto.AdminUpdateRequest;
 import com.levelup.backend.dto.AdminUserDTO;
 import com.levelup.backend.service.UserService;
 import jakarta.validation.Valid;
@@ -22,7 +23,7 @@ public class AdminController {
     }
 
     @PutMapping("/users/{id}")
-    public ResponseEntity<AdminUserDTO> updateUser(@PathVariable Long id, @Valid @RequestBody AdminUserDTO updates) {
+    public ResponseEntity<AdminUserDTO> updateUser(@PathVariable Long id, @Valid @RequestBody AdminUpdateRequest updates) {
         return ResponseEntity.ok(userService.updateUser(id, updates));
     }
 

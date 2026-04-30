@@ -1,5 +1,6 @@
 package com.levelup.backend.service;
 
+import com.levelup.backend.dto.AdminUpdateRequest;
 import com.levelup.backend.dto.AdminUserDTO;
 import com.levelup.backend.dto.LeaderboardEntryDTO;
 import com.levelup.backend.dto.UserDTO;
@@ -76,7 +77,7 @@ public class UserService {
     }
 
     @Transactional
-    public AdminUserDTO updateUser(Long id, AdminUserDTO updates) {
+    public AdminUserDTO updateUser(Long id, AdminUpdateRequest updates) {
         User user = userRepo.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("User not found with ID: " + id));
 

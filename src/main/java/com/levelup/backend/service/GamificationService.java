@@ -28,7 +28,7 @@ public class GamificationService {
     public void processRewards(Long userId, Integer xpGained) {
         // Pre-fetch non-locked data to minimize lock duration
         List<Achievement> allAchievements = achievementRepo.findAll();
-        long completedTasksCount = userTaskRepo.findByUserIdAndStatus(userId, TaskStatus.COMPLETED).size();
+        long completedTasksCount = userTaskRepo.countByUserIdAndStatus(userId, TaskStatus.COMPLETED);
         
         GamificationService proxy = applicationContext.getBean(GamificationService.class);
         proxy.applyRewardsWithLock(userId, xpGained, allAchievements, completedTasksCount);

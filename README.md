@@ -69,23 +69,34 @@ The robust server-side architecture for **LevelUp**, a platform that gamifies th
 
 ## 🚀 Setup & Configuration
 
-### 1. Local Database Setup
-1. Install PostgreSQL on your machine.
-2. Create a new database named `levelup_db`.
+### 1. Prerequisites
+* **Java 21** installed.
+* **PostgreSQL** installed and running.
+
+### 2. Local Database Setup
+1. Create a new database named `levelup_db`.
    ```bash
-   PGPASSWORD=your_postgres_password psql -h localhost -U postgres -c "CREATE DATABASE levelup_db;"
+   psql -h localhost -U postgres -c "CREATE DATABASE levelup_db;"
    ```
-3. The application uses `hibernate.ddl-auto=update`, so tables will be created automatically on the first run.
+2. Import the initial schema and data (optional but recommended for development):
+   ```bash
+   psql -h localhost -U postgres levelup_db < levelup_db.sql
+   ```
 
-### 2. Configuration
-The application is configured in `src/main/resources/application.properties`. Default settings:
-* **Port**: 8080
-* **DB URL**: `jdbc:postgresql://localhost:5432/levelup_db`
-* **JWT TTL**: 3 Hours
+### 3. Environment Configuration
+The application requires several environment variables for security and database connectivity. A template is provided in `.env`.
 
-Ensure your local PostgreSQL user is `postgres` with password `postgres`, or update the properties file accordingly.
+1. Copy the `.env` template or create a new one:
+   ```bash
+   # Add your specific values to the .env file
+   DB_URL=jdbc:postgresql://localhost:5432/levelup_db
+   DB_USERNAME=postgres
+   DB_PASSWORD=your_password
+   JWT_SECRET=your_secure_random_string_at_least_32_chars
+   ```
+2. The application will fail to start if `JWT_SECRET` is not provided.
 
-### 3. Running the Application
+### 4. Running the Application
 ```bash
 ./mvnw spring-boot:run
 ```

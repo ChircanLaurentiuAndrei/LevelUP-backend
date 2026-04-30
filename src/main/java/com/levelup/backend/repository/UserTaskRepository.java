@@ -24,6 +24,9 @@ public interface UserTaskRepository extends JpaRepository<UserTask, Long> {
 
     List<UserTask> findByUserIdAndStatus(Long userId, TaskStatus status);
 
+    @Query("SELECT COUNT(ut) FROM UserTask ut WHERE ut.user.id = :userId AND ut.status = :status")
+    long countByUserIdAndStatus(@Param("userId") Long userId, @Param("status") TaskStatus status);
+
     @Modifying
     @Query("UPDATE UserTask u SET u.status = :newStatus, u.completedAt = :timestamp WHERE u.id = :id AND u.status = :oldStatus")
     int updateStatusIfPending(@Param("id") Long id,
