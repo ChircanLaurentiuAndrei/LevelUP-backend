@@ -16,8 +16,6 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.time.LocalDateTime;
-
 @Service
 @RequiredArgsConstructor
 public class AuthService {
@@ -27,6 +25,7 @@ public class AuthService {
     private final PasswordEncoder passwordEncoder;
     private final JwtUtils jwtUtils;
     private final TaskService taskService;
+    private final GamificationService gamificationService;
 
     @Transactional
     public AuthResponse register(RegisterRequest request) {
@@ -54,6 +53,9 @@ public class AuthService {
         // Assign initial tasks
         taskService.assignDailyTasks(savedUser);
 
+        // Handle initial login gamification
+        gamificationService.processLogin(savedUser.getId());
+
         String token = jwtUtils.generateToken(savedUser);
         return new AuthResponse(token, savedUser.getUsername(), savedUser.getId(), savedUser.getRole());
     }
@@ -67,8 +69,8 @@ public class AuthService {
             throw new BadCredentialsException("Invalid username or password");
         }
 
-        user.setLastLoginAt(LocalDateTime.now());
-        userRepository.save(user);
+        // Process login (updates streak, lastLoginAt, and checks achievements)
+        gamificationService.processLogin(user.getId());
 
         String token = jwtUtils.generateToken(user);
         return new AuthResponse(token, user.getUsername(), user.getId(), user.getRole());

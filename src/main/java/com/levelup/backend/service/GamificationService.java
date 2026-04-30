@@ -13,6 +13,8 @@ import org.springframework.context.ApplicationContext;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.List;
 
 @Service
@@ -32,6 +34,41 @@ public class GamificationService {
         
         GamificationService proxy = applicationContext.getBean(GamificationService.class);
         proxy.applyRewardsWithLock(userId, xpGained, allAchievements, completedTasksCount);
+    }
+
+    public void processLogin(Long userId) {
+        List<Achievement> allAchievements = achievementRepo.findAll();
+        long completedTasksCount = userTaskRepo.countByUserIdAndStatus(userId, TaskStatus.COMPLETED);
+
+        GamificationService proxy = applicationContext.getBean(GamificationService.class);
+        proxy.updateStreakAndCheckAchievements(userId, allAchievements, completedTasksCount);
+    }
+
+    @Transactional
+    public void updateStreakAndCheckAchievements(Long userId, List<Achievement> allAchievements, long completedTasksCount) {
+        User user = userRepo.findByIdWithLock(userId)
+                .orElseThrow(() -> new ResourceNotFoundException("User not found with ID: " + userId));
+
+        LocalDateTime now = LocalDateTime.now();
+        LocalDate today = now.toLocalDate();
+
+        if (user.getLastLoginAt() != null) {
+            LocalDate lastLoginDate = user.getLastLoginAt().toLocalDate();
+            if (lastLoginDate.isBefore(today)) {
+                if (lastLoginDate.equals(today.minusDays(1))) {
+                    user.setStreak(user.getStreak() + 1);
+                } else {
+                    user.setStreak(1);
+                }
+            }
+            // If already logged in today, do nothing to streak
+        } else {
+            user.setStreak(1);
+        }
+
+        user.setLastLoginAt(now);
+        checkAchievements(user, allAchievements, completedTasksCount);
+        userRepo.save(user);
     }
 
     @Transactional
