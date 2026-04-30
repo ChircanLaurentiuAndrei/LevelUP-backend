@@ -13,19 +13,21 @@ The robust server-side architecture for **LevelUp**, a platform that gamifies th
 
 ### 🎮 Gamification Engine
 * **XP & Leveling System**: Calculates experience points based on a configurable threshold (Default: **100 XP per level**).
-* **Dynamic Achievements**: Automatically unlocks badges based on criteria like `TASK_COUNT`, `LEVEL_THRESHOLD`, `XP_TOTAL`, and `STREAK_DAYS`.
-* **Global Leaderboard**: Optimized server-side ranking that explicitly excludes administrators.
+* **Dynamic Achievements**: Automatically unlocks badges based on criteria defined in **Java 21 Sealed Interfaces**.
+* **Global Leaderboard**: Optimized server-side ranking with **JOIN FETCH** to eliminate N+1 queries.
+* **Lock Management**: Uses **Pessimistic Locking** on XP updates with a minimized transaction scope for high concurrency.
 
 ### 🧠 Intelligent Task Management
 * **Smart Assignment Algorithm**: Assigns a **daily limit of 8 tasks**, prioritizing program-specific quests.
 * **Async Verification**: Uses non-blocking threads (`@Async`) to simulate a grading process, awarding XP only after verification completes.
 * **Resilient Lifecycle**: Includes a startup routine and runtime fallbacks to recover tasks from failed verification states.
 
-### 🔐 Modern Architecture
-* **Supabase Auth Integration**: Leverages Supabase Auth (GoTrue) for identity. Internal data is mapped to the `profiles` table linked via **UUID**.
-* **Stateless Resource Server**: Acts as a secure resource server that validates Supabase-issued JWTs.
-* **Java 21 Modernization**: Utilizes **Records** for immutable DTOs and **Pattern Matching** for cleaner business logic.
+### 🔐 Modern Architecture & Security
+* **Integrated Authentication**: Built-in Signup and Login flow using **BCrypt** password hashing and **JWT** (3-hour TTL).
+* **Domain Integrity**: Leverages **Java 21 Sealed Interfaces** (`TaskStatus`, `AchievementType`) for type-safe business logic.
+* **Stateless Resource Server**: Standardized JWT validation with custom claims (`username`, `role`).
 * **Strict Layering**: Enforces a service-centric architecture with constructor injection and standardized global error handling.
+* **Validation**: Rigorous input sanitization using **Jakarta Bean Validation**.
 
 ---
 
@@ -33,17 +35,19 @@ The robust server-side architecture for **LevelUp**, a platform that gamifies th
 
 * **Core**: Java 21, Spring Boot 4.0.0.
 * **Infrastructure**: Local PostgreSQL.
-* **Security**: Spring Security (Supabase JWT Validation), RBAC.
+* **Security**: Spring Security, JWT, BCrypt, RBAC.
 * **Utilities**: Lombok, Jakarta Validation, @ConfigurationProperties.
-* **Database**: PostgreSQL (UUID Primary Keys, Identity Columns).
+* **Database**: Hibernate/JPA (UUID Primary Keys, JPA Converters for Sealed Types).
 
 ---
 
 ## 📡 API Endpoints
 
-### 🟢 Metadata (Public/Auth)
+### 🟢 Authentication (Public)
 | Method | Endpoint | Description |
 | :--- | :--- | :--- |
+| **POST** | `/api/auth/register` | Register a new user and assign initial daily tasks. |
+| **POST** | `/api/auth/login` | Authenticate and receive a JWT (3h TTL). |
 | **GET** | `/api/auth/study-programs` | List all available study programs for onboarding. |
 
 ### 🟡 Core Features (Authenticated User)
@@ -57,11 +61,9 @@ The robust server-side architecture for **LevelUp**, a platform that gamifies th
 ### 🔴 Administration (Admin Only)
 | Method | Endpoint | Description |
 | :--- | :--- | :--- |
-| **GET** | `/api/admin/users` | List all registered profiles. |
+| **GET** | `/api/admin/users` | List all registered profiles (Optimized fetching). |
 | **PUT** | `/api/admin/users/{uuid}` | Update user stats (Level, XP, Streak, Role). |
 | **DELETE** | `/api/admin/users/{uuid}` | Permanently delete a user profile. |
-
-*Note: Authentication (Signup/Login) is handled directly via Supabase Auth on the client side.*
 
 ---
 
@@ -69,26 +71,21 @@ The robust server-side architecture for **LevelUp**, a platform that gamifies th
 
 ### 1. Local Database Setup
 1. Install PostgreSQL on your machine.
-2. Create a new database named `levelup`.
-3. Run the provided SQL schema `levelup_db.sql` to initialize the tables and data.
+2. Create a new database named `levelup_db`.
    ```bash
-   psql -U postgres -d levelup -f levelup_db.sql
+   PGPASSWORD=your_postgres_password psql -h localhost -U postgres -c "CREATE DATABASE levelup_db;"
    ```
+3. The application uses `hibernate.ddl-auto=update`, so tables will be created automatically on the first run.
 
-### 2. Environment Variables
-Create a `.env` file in the root directory (or set environment variables) with the following keys:
+### 2. Configuration
+The application is configured in `src/main/resources/application.properties`. Default settings:
+* **Port**: 8080
+* **DB URL**: `jdbc:postgresql://localhost:5432/levelup_db`
+* **JWT TTL**: 3 Hours
 
-```env
-# Local Database Credentials
-SUPABASE_DB_PASSWORD=your_local_db_password
-SUPABASE_DB_URL=jdbc:postgresql://127.0.0.1:5432/levelup
-
-# Supabase Auth Secrets (Found in your Supabase project dashboard)
-SUPABASE_JWT_SECRET=your_supabase_jwt_secret
-```
+Ensure your local PostgreSQL user is `postgres` with password `postgres`, or update the properties file accordingly.
 
 ### 3. Running the Application
-Ensure the environment variables are loaded and run:
 ```bash
 ./mvnw spring-boot:run
 ```
