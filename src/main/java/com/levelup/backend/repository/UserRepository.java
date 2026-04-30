@@ -29,6 +29,9 @@ public interface UserRepository extends JpaRepository<User, UUID> {
     @Query("SELECT u FROM User u LEFT JOIN FETCH u.unlockedAchievements WHERE u.id = :id")
     Optional<User> findByIdWithLock(@Param("id") UUID id);
 
-    @Query("SELECT u FROM User u WHERE u.role != :role ORDER BY u.currentXp DESC")
+    @Query("SELECT u FROM User u LEFT JOIN FETCH u.studyProgram WHERE u.role != :role ORDER BY u.currentXp DESC")
     List<User> findLeaderboard(@Param("role") String role);
+
+    @Query("SELECT u FROM User u LEFT JOIN FETCH u.studyProgram")
+    List<User> findAll();
 }

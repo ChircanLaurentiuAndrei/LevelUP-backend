@@ -1,6 +1,7 @@
 package com.levelup.backend.security;
 
 import com.levelup.backend.config.JwtProperties;
+import com.levelup.backend.entity.User;
 import io.jsonwebtoken.JwtException;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.security.Keys;
@@ -22,9 +23,11 @@ public class JwtUtils {
         return Keys.hmacShaKeyFor(jwtProperties.secret().getBytes(StandardCharsets.UTF_8));
     }
 
-    public String generateToken(String username) {
+    public String generateToken(User user) {
         return Jwts.builder()
-                .subject(username)
+                .subject(user.getId().toString())
+                .claim("username", user.getUsername())
+                .claim("role", user.getRole())
                 .issuedAt(new Date())
                 .expiration(new Date((new Date()).getTime() + jwtProperties.expiration()))
                 .signWith(getSigningKey())
@@ -37,7 +40,7 @@ public class JwtUtils {
                 .build()
                 .parseSignedClaims(token)
                 .getPayload()
-                .getSubject();
+                .get("username", String.class);
     }
 
     public UUID getUserIdFromJwtToken(String token) {

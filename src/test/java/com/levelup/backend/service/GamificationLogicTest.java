@@ -11,6 +11,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.context.ApplicationContext;
 
 import java.util.HashSet;
 import java.util.Optional;
@@ -37,12 +38,16 @@ class GamificationLogicTest {
     @Mock
     private GamificationProperties props;
 
+    @Mock
+    private ApplicationContext applicationContext;
+
     @InjectMocks
     private GamificationService gamificationService;
 
     @BeforeEach
     void setup() {
         lenient().when(props.xpPerLevel()).thenReturn(100);
+        lenient().when(applicationContext.getBean(GamificationService.class)).thenReturn(gamificationService);
     }
 
     @Test

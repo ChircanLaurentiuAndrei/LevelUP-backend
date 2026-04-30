@@ -28,6 +28,11 @@ public class GlobalExceptionHandler {
     public ResponseEntity<ErrorResponse> handleBusinessError(RuntimeException ex) {
         return buildResponse(HttpStatus.BAD_REQUEST, "Bad Request", ex.getMessage());
     }
+    
+    @ExceptionHandler(TaskAlreadyCompletedException.class)
+    public ResponseEntity<ErrorResponse> handleConflict(TaskAlreadyCompletedException ex) {
+        return buildResponse(HttpStatus.CONFLICT, "Conflict", ex.getMessage());
+    }
 
     @ExceptionHandler(BadCredentialsException.class)
     public ResponseEntity<ErrorResponse> handleBadCredentials(BadCredentialsException ex) {

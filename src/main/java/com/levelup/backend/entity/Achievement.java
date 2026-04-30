@@ -18,7 +18,6 @@ public class Achievement {
 
     private String description;
 
-    @Enumerated(EnumType.STRING)
     @Column(nullable = false)
     private AchievementType criteriaType;
 

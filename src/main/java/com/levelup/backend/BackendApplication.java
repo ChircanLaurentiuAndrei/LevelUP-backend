@@ -1,5 +1,6 @@
 package com.levelup.backend;
 
+import com.levelup.backend.enums.TaskStatus;
 import com.levelup.backend.repository.UserTaskRepository;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.boot.SpringApplication;
@@ -20,7 +21,7 @@ public class BackendApplication {
     @Bean
     public CommandLineRunner resetStuckTasks(UserTaskRepository userTaskRepo) {
         return args -> {
-            int count = userTaskRepo.resetStuckTasks();
+            int count = userTaskRepo.resetStuckTasks(TaskStatus.PENDING, TaskStatus.VERIFYING);
             if (count > 0) {
                 System.out.println("🔄 Recovered " + count + " stuck tasks (reset to PENDING).");
             }

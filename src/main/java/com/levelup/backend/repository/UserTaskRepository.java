@@ -22,17 +22,18 @@ public interface UserTaskRepository extends JpaRepository<UserTask, Long> {
     List<UserTask> findByUserIdAndStatus(UUID userId, TaskStatus status);
 
     @Modifying
-    @Query("UPDATE UserTask u SET u.status = :newStatus, u.completedAt = :timestamp WHERE u.id = :id AND u.status = com.levelup.backend.enums.TaskStatus.PENDING")
+    @Query("UPDATE UserTask u SET u.status = :newStatus, u.completedAt = :timestamp WHERE u.id = :id AND u.status = :oldStatus")
     int updateStatusIfPending(@Param("id") Long id,
                               @Param("newStatus") TaskStatus newStatus,
+                              @Param("oldStatus") TaskStatus oldStatus,
                               @Param("timestamp") LocalDateTime timestamp);
 
     @Modifying
-    @Query("DELETE FROM UserTask u WHERE u.user.id = :userId AND u.status = com.levelup.backend.enums.TaskStatus.PENDING")
-    void deletePendingTasksByUserId(@Param("userId") UUID userId);
+    @Query("DELETE FROM UserTask u WHERE u.user.id = :userId AND u.status = :status")
+    void deleteTasksByUserIdAndStatus(@Param("userId") UUID userId, @Param("status") TaskStatus status);
 
     @Modifying
     @Transactional
-    @Query("UPDATE UserTask u SET u.status = com.levelup.backend.enums.TaskStatus.PENDING WHERE u.status = com.levelup.backend.enums.TaskStatus.VERIFYING")
-    int resetStuckTasks();
+    @Query("UPDATE UserTask u SET u.status = :pendingStatus WHERE u.status = :verifyingStatus")
+    int resetStuckTasks(@Param("pendingStatus") TaskStatus pendingStatus, @Param("verifyingStatus") TaskStatus verifyingStatus);
 }

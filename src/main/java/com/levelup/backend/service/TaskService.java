@@ -8,6 +8,7 @@ import com.levelup.backend.entity.UserTask;
 import com.levelup.backend.enums.TaskStatus;
 import com.levelup.backend.exception.BusinessException;
 import com.levelup.backend.exception.ResourceNotFoundException;
+import com.levelup.backend.exception.TaskAlreadyCompletedException;
 import com.levelup.backend.exception.UnauthorizedActionException;
 import com.levelup.backend.repository.TaskRepository;
 import com.levelup.backend.repository.UserRepository;
@@ -80,10 +81,10 @@ public class TaskService {
             throw new UnauthorizedActionException("This task does not belong to you");
         }
 
-        int updatedRows = userTaskRepo.updateStatusIfPending(userTaskId, TaskStatus.VERIFYING, LocalDateTime.now());
+        int updatedRows = userTaskRepo.updateStatusIfPending(userTaskId, TaskStatus.VERIFYING, TaskStatus.PENDING, LocalDateTime.now());
 
         if (updatedRows == 0) {
-            throw new BusinessException("Task is already completed or under verification");
+            throw new TaskAlreadyCompletedException("Task is already completed or under verification");
         }
 
         verificationService.verifyTaskInBackground(ut.getId());
@@ -91,6 +92,6 @@ public class TaskService {
 
     @Transactional
     public void cleanupPendingTasks(UUID userId) {
-        userTaskRepo.deletePendingTasksByUserId(userId);
+        userTaskRepo.deleteTasksByUserIdAndStatus(userId, TaskStatus.PENDING);
     }
 }
