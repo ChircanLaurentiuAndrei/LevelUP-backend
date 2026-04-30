@@ -18,10 +18,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-import java.util.UUID;
+import java.util.*;
 
 @Service
 @RequiredArgsConstructor
@@ -38,14 +35,14 @@ public class TaskService {
         User user = userRepo.findByUsernameWithStudyProgram(username)
                 .orElseThrow(() -> new ResourceNotFoundException("User not found: " + username));
 
-        List<UserTask> tasks = userTaskRepo.findByUserIdWithTask(user.getId());
+        List<UserTask> tasks = userTaskRepo.findByUserIdAndAssignedDateWithTask(user.getId(), LocalDate.now());
         return DashboardDTO.fromUserAndTasks(user, tasks, props.xpPerLevel());
     }
 
     @Transactional
     public void assignDailyTasks(User user) {
         Long studyProgramId = (user.getStudyProgram() != null) ? user.getStudyProgram().getId() : null;
-        List<Task> selectedTasks = new ArrayList<>();
+        Set<Task> selectedTasks = new HashSet<>();
 
         if (studyProgramId != null) {
             List<Task> programTasks = taskRepo.findRandomTasksByProgram(studyProgramId, props.minProgramTasks());
@@ -56,12 +53,17 @@ public class TaskService {
 
         if (remainingSlots > 0) {
             List<Task> globalTasks = taskRepo.findRandomGlobalTasks(remainingSlots);
-            selectedTasks.addAll(globalTasks);
+            for (Task gt : globalTasks) {
+                if (selectedTasks.size() < props.dailyTaskLimit()) {
+                    selectedTasks.add(gt);
+                }
+            }
         }
 
-        Collections.shuffle(selectedTasks);
+        List<Task> finalTasks = new ArrayList<>(selectedTasks);
+        Collections.shuffle(finalTasks);
 
-        for (Task task : selectedTasks) {
+        for (Task task : finalTasks) {
             UserTask assignment = new UserTask();
             assignment.setUser(user);
             assignment.setTask(task);
@@ -90,7 +92,7 @@ public class TaskService {
     }
 
     @Transactional
-    public void cleanupPendingTasks(UUID userId) {
+    public void cleanupPendingTasks(Long userId) {
         userTaskRepo.deleteTasksByUserIdAndStatus(userId, TaskStatus.PENDING);
     }
 }

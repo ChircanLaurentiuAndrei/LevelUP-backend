@@ -1,5 +1,6 @@
 package com.levelup.backend.controller;
 
+import com.levelup.backend.dto.LeaderboardEntryDTO;
 import com.levelup.backend.dto.UserDTO;
 import com.levelup.backend.service.UserService;
 import lombok.RequiredArgsConstructor;
@@ -30,7 +31,7 @@ public class UserController {
     }
 
     @GetMapping("/leaderboard")
-    public ResponseEntity<List<UserDTO>> getLeaderboard() {
+    public ResponseEntity<List<LeaderboardEntryDTO>> getLeaderboard() {
         return ResponseEntity.ok(userService.getLeaderboard());
     }
 }

@@ -1,5 +1,7 @@
 package com.levelup.backend.service;
 
+import com.levelup.backend.dto.AdminUserDTO;
+import com.levelup.backend.dto.LeaderboardEntryDTO;
 import com.levelup.backend.dto.UserDTO;
 import com.levelup.backend.entity.Achievement;
 import com.levelup.backend.entity.User;
@@ -14,7 +16,6 @@ import org.springframework.transaction.annotation.Transactional;
 import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
-import java.util.UUID;
 
 @Service
 @RequiredArgsConstructor
@@ -32,8 +33,8 @@ public class UserService {
                 .map(Achievement::getId)
                 .toList();
 
-        LocalDate loginDate = (user.getUpdatedAt() != null)
-                ? user.getUpdatedAt().toLocalDate()
+        LocalDate loginDate = (user.getLastLoginAt() != null)
+                ? user.getLastLoginAt().toLocalDate()
                 : null;
 
         return new UserDTO(
@@ -55,77 +56,90 @@ public class UserService {
     }
 
     @Transactional(readOnly = true)
-    public List<UserDTO> getLeaderboard() {
+    public List<LeaderboardEntryDTO> getLeaderboard() {
         return userRepo.findLeaderboard("ADMIN").stream()
-                .map(u -> new UserDTO(
+                .map(u -> new LeaderboardEntryDTO(
                         u.getId(),
                         u.getUsername(),
-                        null,
                         u.getCurrentLevel(),
                         u.getCurrentXp(),
-                        u.getStreak(),
-                        null,
-                        null,
-                        null
+                        u.getStreak()
                 ))
                 .toList();
     }
 
     @Transactional(readOnly = true)
-    public List<User> getAllUsers() {
-        return userRepo.findAll();
+    public List<AdminUserDTO> getAllUsers() {
+        return userRepo.findAll().stream()
+                .map(this::mapToAdminDTO)
+                .toList();
     }
 
     @Transactional
-    public User updateUser(UUID id, User updates) {
+    public AdminUserDTO updateUser(Long id, AdminUserDTO updates) {
         User user = userRepo.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("User not found with ID: " + id));
 
-        if (updates.getUsername() != null && !updates.getUsername().equals(user.getUsername())) {
-            Optional<User> existing = userRepo.findByUsername(updates.getUsername());
+        if (updates.username() != null && !updates.username().equals(user.getUsername())) {
+            Optional<User> existing = userRepo.findByUsername(updates.username());
             if (existing.isPresent()) {
-                throw new BusinessException("Username '" + updates.getUsername() + "' is already taken.");
+                throw new BusinessException("Username '" + updates.username() + "' is already taken.");
             }
-            user.setUsername(updates.getUsername());
+            user.setUsername(updates.username());
         }
 
-        if (updates.getCurrentLevel() != null) {
-            if (updates.getCurrentLevel() < 1) {
+        if (updates.currentLevel() != null) {
+            if (updates.currentLevel() < 1) {
                 throw new BusinessException("Level cannot be less than 1.");
             }
-            user.setCurrentLevel(updates.getCurrentLevel());
+            user.setCurrentLevel(updates.currentLevel());
         }
 
-        if (updates.getCurrentXp() != null) {
-            if (updates.getCurrentXp() < 0) {
+        if (updates.currentXp() != null) {
+            if (updates.currentXp() < 0) {
                 throw new BusinessException("XP cannot be negative.");
             }
-            user.setCurrentXp(updates.getCurrentXp());
+            user.setCurrentXp(updates.currentXp());
         }
 
-        if (updates.getStreak() != null) {
-            if (updates.getStreak() < 0) {
+        if (updates.streak() != null) {
+            if (updates.streak() < 0) {
                 throw new BusinessException("Streak cannot be negative.");
             }
-            user.setStreak(updates.getStreak());
+            user.setStreak(updates.streak());
         }
 
-        if (updates.getRole() != null) {
-            String newRole = updates.getRole().toUpperCase();
+        if (updates.role() != null) {
+            String newRole = updates.role().toUpperCase();
             if (!newRole.equals("USER") && !newRole.equals("ADMIN")) {
                 throw new BusinessException("Invalid role. Must be 'USER' or 'ADMIN'.");
             }
             user.setRole(newRole);
         }
 
-        return userRepo.save(user);
+        return mapToAdminDTO(userRepo.save(user));
     }
 
     @Transactional
-    public void deleteUser(UUID id) {
+    public void deleteUser(Long id) {
         if (!userRepo.existsById(id)) {
             throw new ResourceNotFoundException("User not found with ID: " + id);
         }
         userRepo.deleteById(id);
+    }
+
+    private AdminUserDTO mapToAdminDTO(User user) {
+        return new AdminUserDTO(
+                user.getId(),
+                user.getUsername(),
+                user.getEmail(),
+                user.getCurrentLevel(),
+                user.getCurrentXp(),
+                user.getStreak(),
+                user.getRole(),
+                user.getCreatedAt(),
+                user.getUpdatedAt(),
+                user.getLastLoginAt()
+        );
     }
 }

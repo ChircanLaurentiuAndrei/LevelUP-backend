@@ -53,7 +53,8 @@ public class VerificationService {
         gamificationService.processRewards(userTask.getUser().getId(), userTask.getTask().getXpReward());
     }
 
-    private void resetTaskStatus(Long userTaskId) {
+    @Transactional
+    public void resetTaskStatus(Long userTaskId) {
         userTaskRepo.findById(userTaskId).ifPresent(ut -> {
             if (ut.getStatus() == TaskStatus.VERIFYING) {
                 ut.setStatus(TaskStatus.PENDING);

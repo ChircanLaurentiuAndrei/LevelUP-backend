@@ -11,12 +11,12 @@ import com.levelup.backend.repository.StudyProgramRepository;
 import com.levelup.backend.repository.UserRepository;
 import com.levelup.backend.security.JwtUtils;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
-import java.util.UUID;
 
 @Service
 @RequiredArgsConstructor
@@ -41,15 +41,12 @@ public class AuthService {
                 .orElseThrow(() -> new ResourceNotFoundException("Study program not found"));
 
         User user = new User();
-        user.setId(UUID.randomUUID());
         user.setUsername(request.username());
         user.setEmail(request.email());
         user.setPassword(passwordEncoder.encode(request.password()));
         user.setFullName(request.username()); // Default to username
         user.setAvatarUrl("https://api.dicebear.com/7.x/avataaars/svg?seed=" + request.username());
         user.setRole("USER");
-        user.setCreatedAt(LocalDateTime.now());
-        user.setUpdatedAt(LocalDateTime.now());
         user.setStudyProgram(studyProgram);
         
         User savedUser = userRepository.save(user);
@@ -64,13 +61,13 @@ public class AuthService {
     @Transactional
     public AuthResponse login(LoginRequest request) {
         User user = userRepository.findByUsername(request.username())
-                .orElseThrow(() -> new BusinessException("Invalid username or password"));
+                .orElseThrow(() -> new BadCredentialsException("Invalid username or password"));
 
         if (!passwordEncoder.matches(request.password(), user.getPassword())) {
-            throw new BusinessException("Invalid username or password");
+            throw new BadCredentialsException("Invalid username or password");
         }
 
-        user.setUpdatedAt(LocalDateTime.now());
+        user.setLastLoginAt(LocalDateTime.now());
         userRepository.save(user);
 
         String token = jwtUtils.generateToken(user);

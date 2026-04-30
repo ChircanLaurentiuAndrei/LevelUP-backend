@@ -3,7 +3,6 @@ package com.levelup.backend.service;
 import com.levelup.backend.config.GamificationProperties;
 import com.levelup.backend.entity.Achievement;
 import com.levelup.backend.entity.User;
-import com.levelup.backend.enums.AchievementType;
 import com.levelup.backend.enums.TaskStatus;
 import com.levelup.backend.exception.ResourceNotFoundException;
 import com.levelup.backend.repository.AchievementRepository;
@@ -15,7 +14,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
-import java.util.UUID;
 
 @Service
 @RequiredArgsConstructor
@@ -27,7 +25,7 @@ public class GamificationService {
     private final UserTaskRepository userTaskRepo;
     private final ApplicationContext applicationContext;
 
-    public void processRewards(UUID userId, Integer xpGained) {
+    public void processRewards(Long userId, Integer xpGained) {
         // Pre-fetch non-locked data to minimize lock duration
         List<Achievement> allAchievements = achievementRepo.findAll();
         long completedTasksCount = userTaskRepo.findByUserIdAndStatus(userId, TaskStatus.COMPLETED).size();
@@ -37,7 +35,7 @@ public class GamificationService {
     }
 
     @Transactional
-    public void applyRewardsWithLock(UUID userId, Integer xpGained, List<Achievement> allAchievements, long completedTasksCount) {
+    public void applyRewardsWithLock(Long userId, Integer xpGained, List<Achievement> allAchievements, long completedTasksCount) {
         User user = userRepo.findByIdWithLock(userId)
                 .orElseThrow(() -> new ResourceNotFoundException("User not found with ID: " + userId));
 
@@ -58,10 +56,10 @@ public class GamificationService {
             if (user.getUnlockedAchievements().contains(ach)) continue;
 
             boolean unlocked = switch (ach.getCriteriaType()) {
-                case AchievementType.TaskCount tc -> completedTasksCount >= ach.getConditionValue();
-                case AchievementType.LevelThreshold lt -> user.getCurrentLevel() >= ach.getConditionValue();
-                case AchievementType.XpTotal xt -> user.getCurrentXp() >= ach.getConditionValue();
-                case AchievementType.StreakDays sd -> user.getStreak() >= ach.getConditionValue();
+                case TASK_COUNT -> completedTasksCount >= ach.getConditionValue();
+                case LEVEL_THRESHOLD -> user.getCurrentLevel() >= ach.getConditionValue();
+                case XP_TOTAL -> user.getCurrentXp() >= ach.getConditionValue();
+                case STREAK_DAYS -> user.getStreak() >= ach.getConditionValue();
             };
 
             if (unlocked) {

@@ -24,7 +24,7 @@ import static org.mockito.Mockito.*;
 @ExtendWith(MockitoExtension.class)
 class GamificationLogicTest {
 
-    private final UUID TEST_USER_ID = UUID.randomUUID();
+    private final Long TEST_USER_ID = 1L;
 
     @Mock
     private UserRepository userRepo;

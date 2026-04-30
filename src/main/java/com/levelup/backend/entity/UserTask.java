@@ -24,6 +24,7 @@ public class UserTask {
     @JoinColumn(name = "task_id", nullable = false)
     private Task task;
 
+    @Enumerated(EnumType.STRING)
     @Column(nullable = false)
     private TaskStatus status = TaskStatus.PENDING;
 

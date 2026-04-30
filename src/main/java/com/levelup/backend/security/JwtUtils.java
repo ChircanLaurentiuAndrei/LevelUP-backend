@@ -11,7 +11,6 @@ import org.springframework.stereotype.Component;
 import javax.crypto.SecretKey;
 import java.nio.charset.StandardCharsets;
 import java.util.Date;
-import java.util.UUID;
 
 @Component
 @RequiredArgsConstructor
@@ -43,14 +42,14 @@ public class JwtUtils {
                 .get("username", String.class);
     }
 
-    public UUID getUserIdFromJwtToken(String token) {
+    public Long getUserIdFromJwtToken(String token) {
         String sub = Jwts.parser()
                 .verifyWith(getSigningKey())
                 .build()
                 .parseSignedClaims(token)
                 .getPayload()
                 .getSubject();
-        return UUID.fromString(sub);
+        return Long.parseLong(sub);
     }
 
     public boolean validateJwtToken(String authToken) {
