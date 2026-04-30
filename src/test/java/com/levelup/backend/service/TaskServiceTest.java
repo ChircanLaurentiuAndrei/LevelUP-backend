@@ -5,8 +5,6 @@ import com.levelup.backend.dto.DashboardDTO;
 import com.levelup.backend.entity.Task;
 import com.levelup.backend.entity.User;
 import com.levelup.backend.entity.UserTask;
-import com.levelup.backend.enums.TaskStatus;
-import com.levelup.backend.exception.ResourceNotFoundException;
 import com.levelup.backend.exception.TaskAlreadyCompletedException;
 import com.levelup.backend.exception.UnauthorizedActionException;
 import com.levelup.backend.repository.TaskRepository;

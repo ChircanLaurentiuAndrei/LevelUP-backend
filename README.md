@@ -97,6 +97,25 @@ The application requires several environment variables for security and database
 2. The application will fail to start if `JWT_SECRET` is not provided.
 
 ### 4. Running the Application
+Since Spring Boot does not natively load `.env` files, you must export the variables before running the application:
+
+**Linux / macOS:**
 ```bash
+export $(grep -v '^#' .env | xargs) && ./mvnw spring-boot:run
+```
+
+**Windows (PowerShell):**
+```powershell
+foreach($line in Get-Content .env) {
+    if($line -and -not $line.StartsWith('#')) {
+        $name, $value = $line -split '=', 2
+        [System.Environment]::SetEnvironmentVariable($name, $value)
+    }
+}
 ./mvnw spring-boot:run
+```
+
+Alternatively, you can provide the variables directly as Maven arguments:
+```bash
+./mvnw spring-boot:run -Dspring-boot.run.jvmArguments="-DJWT_SECRET=your_secret -DDB_PASSWORD=your_password"
 ```
