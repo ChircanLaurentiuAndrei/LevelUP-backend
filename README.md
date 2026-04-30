@@ -1,11 +1,11 @@
-# 🚀 LevelUp – Backend API (Supabase Edition)
+# 🚀 LevelUp – Backend API
 
 ![Java](https://img.shields.io/badge/Java-21-orange.svg)
 ![Spring Boot](https://img.shields.io/badge/Spring%20Boot-4.0.0-green.svg)
-![Supabase](https://img.shields.io/badge/Supabase-Auth%20%26%20DB-3ec988.svg)
+![PostgreSQL](https://img.shields.io/badge/PostgreSQL-Local-blue.svg)
 ![License](https://img.shields.io/badge/license-MIT-blue.svg)
 
-The robust server-side architecture for **LevelUp**, a platform that gamifies the student experience. This RESTful API orchestrates user progression and real-time task management, now fully integrated with **Supabase** for identity and data storage.
+The robust server-side architecture for **LevelUp**, a platform that gamifies the student experience. This RESTful API orchestrates user progression and real-time task management.
 
 ---
 
@@ -22,7 +22,7 @@ The robust server-side architecture for **LevelUp**, a platform that gamifies th
 * **Resilient Lifecycle**: Includes a startup routine and runtime fallbacks to recover tasks from failed verification states.
 
 ### 🔐 Modern Architecture
-* **Supabase Integration**: Leverages Supabase Auth (GoTrue) for identity. Internal data is mapped to the `profiles` table linked via **UUID**.
+* **Supabase Auth Integration**: Leverages Supabase Auth (GoTrue) for identity. Internal data is mapped to the `profiles` table linked via **UUID**.
 * **Stateless Resource Server**: Acts as a secure resource server that validates Supabase-issued JWTs.
 * **Java 21 Modernization**: Utilizes **Records** for immutable DTOs and **Pattern Matching** for cleaner business logic.
 * **Strict Layering**: Enforces a service-centric architecture with constructor injection and standardized global error handling.
@@ -32,8 +32,8 @@ The robust server-side architecture for **LevelUp**, a platform that gamifies th
 ## 🛠️ Tech Stack
 
 * **Core**: Java 21, Spring Boot 4.0.0.
-* **Infrastructure**: Supabase (PostgreSQL + Auth).
-* **Security**: Spring Security (JWT Validation), RBAC.
+* **Infrastructure**: Local PostgreSQL.
+* **Security**: Spring Security (Supabase JWT Validation), RBAC.
 * **Utilities**: Lombok, Jakarta Validation, @ConfigurationProperties.
 * **Database**: PostgreSQL (UUID Primary Keys, Identity Columns).
 
@@ -67,20 +67,23 @@ The robust server-side architecture for **LevelUp**, a platform that gamifies th
 
 ## 🚀 Setup & Configuration
 
-### 1. Supabase Setup
-1. Create a new project on [Supabase](https://supabase.com).
-2. Run the provided SQL schema (refer to Supabase setup notes) to initialize the `profiles`, `tasks`, `achievements`, and RLS policies.
-3. Configure the trigger for automatic profile creation on signup.
+### 1. Local Database Setup
+1. Install PostgreSQL on your machine.
+2. Create a new database named `levelup`.
+3. Run the provided SQL schema `levelup_db.sql` to initialize the tables and data.
+   ```bash
+   psql -U postgres -d levelup -f levelup_db.sql
+   ```
 
 ### 2. Environment Variables
 Create a `.env` file in the root directory (or set environment variables) with the following keys:
 
 ```env
-# Supabase Database Credentials
-SUPABASE_DB_PASSWORD=your_db_password
-SUPABASE_DB_URL=jdbc:postgresql://db.[your-id].supabase.co:5432/postgres
+# Local Database Credentials
+SUPABASE_DB_PASSWORD=your_local_db_password
+SUPABASE_DB_URL=jdbc:postgresql://127.0.0.1:5432/levelup
 
-# Supabase Auth Secrets
+# Supabase Auth Secrets (Found in your Supabase project dashboard)
 SUPABASE_JWT_SECRET=your_supabase_jwt_secret
 ```
 

@@ -15,12 +15,15 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import java.util.HashSet;
 import java.util.Optional;
 import java.util.ArrayList;
+import java.util.UUID;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
 class GamificationLogicTest {
+
+    private final UUID TEST_USER_ID = UUID.randomUUID();
 
     @Mock
     private UserRepository userRepo;
@@ -45,15 +48,15 @@ class GamificationLogicTest {
     @Test
     void testXpGainAndLevelUp() {
         User user = new User();
-        user.setId(1L);
+        user.setId(TEST_USER_ID);
         user.setCurrentLevel(1);
         user.setCurrentXp(80);
         user.setUnlockedAchievements(new HashSet<>());
 
-        when(userRepo.findByIdWithLock(1L)).thenReturn(Optional.of(user));
+        when(userRepo.findByIdWithLock(TEST_USER_ID)).thenReturn(Optional.of(user));
         when(achievementRepo.findAll()).thenReturn(new ArrayList<>());
 
-        gamificationService.processRewards(1L, 30);
+        gamificationService.processRewards(TEST_USER_ID, 30);
 
         assertEquals(110, user.getCurrentXp());
         assertEquals(2, user.getCurrentLevel(), "User should level up to Level 2 after crossing 100 XP");
@@ -64,15 +67,15 @@ class GamificationLogicTest {
     @Test
     void testXpGainNoLevelUp() {
         User user = new User();
-        user.setId(1L);
+        user.setId(TEST_USER_ID);
         user.setCurrentLevel(1);
         user.setCurrentXp(50);
         user.setUnlockedAchievements(new HashSet<>());
 
-        when(userRepo.findByIdWithLock(1L)).thenReturn(Optional.of(user));
+        when(userRepo.findByIdWithLock(TEST_USER_ID)).thenReturn(Optional.of(user));
         when(achievementRepo.findAll()).thenReturn(new ArrayList<>());
 
-        gamificationService.processRewards(1L, 20);
+        gamificationService.processRewards(TEST_USER_ID, 20);
 
         assertEquals(70, user.getCurrentXp());
         assertEquals(1, user.getCurrentLevel(), "User should remain at Level 1");
