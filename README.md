@@ -2,7 +2,7 @@
 
 ![Java](https://img.shields.io/badge/Java-21-orange.svg)
 ![Spring Boot](https://img.shields.io/badge/Spring%20Boot-4.0.0-green.svg)
-![PostgreSQL](https://img.shields.io/badge/PostgreSQL-Local-blue.svg)
+![PostgreSQL](https://img.shields.io/badge/PostgreSQL-Aiven-blue.svg)
 ![License](https://img.shields.io/badge/license-MIT-blue.svg)
 
 The robust server-side architecture for **LevelUp**, a platform that gamifies the student experience. This RESTful API orchestrates user progression and real-time task management.
@@ -34,10 +34,24 @@ The robust server-side architecture for **LevelUp**, a platform that gamifies th
 ## 🛠️ Tech Stack
 
 * **Core**: Java 21, Spring Boot 4.0.0.
-* **Infrastructure**: Local PostgreSQL.
+* **Infrastructure**: Distributed system with **Spring Boot on Render** and **PostgreSQL on Aiven**.
 * **Security**: Spring Security, JWT, BCrypt, RBAC.
 * **Utilities**: Lombok, Jakarta Validation, @ConfigurationProperties.
 * **Database**: Hibernate/JPA (UUID Primary Keys, JPA Converters for Sealed Types).
+
+---
+
+## 🌐 Hosting & Performance
+
+### ❄️ Cold Start Behavior
+This service is hosted on **Render's Free Tier**, which includes the following performance characteristics:
+* **Idle Spin-down**: The service automatically spins down after **15 minutes of inactivity**.
+* **Startup Latency**: The first request after a spin-down may take **~60 seconds** to respond as the instance wakes up.
+* **Database Persistence**: Managed externally via **Aiven**, ensuring data remains intact during server spin-downs.
+
+### 🛡️ Resilience & Recovery
+The application is designed to handle the ephemeral nature of free-tier hosting:
+* **Stuck Task Recovery**: The `resetStuckTasks` bean in `BackendApplication.java` automatically runs on startup. It scans for tasks that were in a `VERIFYING` state (e.g., if the server spun down during an active verification session) and resets them to `PENDING`, ensuring no student's progress is lost due to infrastructure idle-outs.
 
 ---
 
@@ -84,7 +98,17 @@ The robust server-side architecture for **LevelUp**, a platform that gamifies th
    ```
 
 ### 3. Environment Configuration
-The application requires several environment variables for security and database connectivity. A template is provided in `.env`.
+The application requires several environment variables for security and database connectivity.
+
+#### 🏗️ Render / Aiven (Production)
+For the deployed version, the following environment variables are configured in the Render Dashboard:
+* **DB_URL**: The JDBC connection string provided by Aiven (e.g., `jdbc:postgresql://<host>:<port>/defaultdb?sslmode=require`).
+* **DB_USERNAME**: Database user provided by Aiven (usually `avnadmin`).
+* **DB_PASSWORD**: Database password provided by Aiven.
+* **JWT_SECRET**: A secure random string used for signing tokens.
+
+#### 💻 Local Development
+A template is provided in `.env`.
 
 1. Copy the `.env` template or create a new one:
    ```bash
