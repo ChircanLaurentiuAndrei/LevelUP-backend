@@ -59,7 +59,7 @@ public class SecurityConfig {
         configuration.setAllowedOrigins(List.of(
                 "http://localhost:5173",
                 "https://levelup-frontend.vercel.app",
-                "https://levelup-app-topaz.vercel.app",
+                "https://levelup-app-iota.vercel.app",
                 "https://levelup-9qu3xkeke-chircan-laurentiu-s-projects.vercel.app"
         ));
         configuration.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS"));
