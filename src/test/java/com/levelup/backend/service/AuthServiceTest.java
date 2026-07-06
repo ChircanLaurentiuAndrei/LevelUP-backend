@@ -28,6 +28,7 @@ class AuthServiceTest {
     @Mock private PasswordEncoder passwordEncoder;
     @Mock private JwtUtils jwtUtils;
     @Mock private TaskService taskService;
+    @Mock private GamificationService gamificationService;
 
     @InjectMocks private AuthService authService;
 
