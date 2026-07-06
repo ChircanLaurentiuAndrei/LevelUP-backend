@@ -1,7 +1,5 @@
 package com.levelup.backend.security;
 
-import com.levelup.backend.entity.User;
-import com.levelup.backend.repository.UserRepository;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -20,7 +18,6 @@ import java.util.List;
 public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
     private final JwtUtils jwtUtils;
-    private final UserRepository userRepository;
 
     private String parseJwt(HttpServletRequest req) {
         String header = req.getHeader("Authorization");
@@ -37,14 +34,14 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         try {
             String token = parseJwt(request);
             if (token != null && jwtUtils.validateJwtToken(token)) {
-                Long userId = jwtUtils.getUserIdFromJwtToken(token);
+                String username = jwtUtils.getUsernameFromJwtToken(token);
+                String role = jwtUtils.getRoleFromJwtToken(token);
 
-                User user = userRepository.findById(userId).orElse(null);
-                if (user != null) {
+                if (username != null && role != null) {
                     UserDetails userDetails = org.springframework.security.core.userdetails.User
-                            .withUsername(user.getUsername())
+                            .withUsername(username)
                             .password("")
-                            .authorities(List.of(new SimpleGrantedAuthority("ROLE_" + user.getRole())))
+                            .authorities(List.of(new SimpleGrantedAuthority("ROLE_" + role)))
                             .build();
 
                     UsernamePasswordAuthenticationToken auth =

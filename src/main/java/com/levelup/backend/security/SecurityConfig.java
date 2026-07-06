@@ -1,6 +1,5 @@
 package com.levelup.backend.security;
 
-import com.levelup.backend.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -23,22 +22,19 @@ import java.util.List;
 public class SecurityConfig {
 
     private final JwtUtils jwtUtils;
-    private final UserRepository userRepository;
     private final List<String> allowedOrigins;
 
     public SecurityConfig(
             JwtUtils jwtUtils,
-            UserRepository userRepository,
             @Value("${app.security.allowed-origins:http://localhost:5173,https://levelup-frontend.vercel.app,https://levelup-app-iota.vercel.app,https://levelup-9qu3xkeke-chircan-laurentiu-s-projects.vercel.app}") List<String> allowedOrigins
     ) {
         this.jwtUtils = jwtUtils;
-        this.userRepository = userRepository;
         this.allowedOrigins = allowedOrigins;
     }
 
     @Bean
     public JwtAuthenticationFilter jwtAuthenticationFilter() {
-        return new JwtAuthenticationFilter(jwtUtils, userRepository);
+        return new JwtAuthenticationFilter(jwtUtils);
     }
 
     @Bean

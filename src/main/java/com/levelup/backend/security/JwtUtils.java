@@ -42,6 +42,15 @@ public class JwtUtils {
                 .get("username", String.class);
     }
 
+    public String getRoleFromJwtToken(String token) {
+        return Jwts.parser()
+                .verifyWith(getSigningKey())
+                .build()
+                .parseSignedClaims(token)
+                .getPayload()
+                .get("role", String.class);
+    }
+
     public Long getUserIdFromJwtToken(String token) {
         String sub = Jwts.parser()
                 .verifyWith(getSigningKey())
