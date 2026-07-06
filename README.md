@@ -8,6 +8,8 @@
 
 The robust server-side architecture for **LevelUp**, a platform that gamifies the student experience. This RESTful API orchestrates user progression and real-time task management.
 
+Looking for the client-side user interface? Check out the [LevelUp Frontend](../LevelUP-frontend) (or [GitHub Repository](https://github.com/l4aaa/LevelUP-frontend)).
+
 ---
 
 ## ✨ Key Features
@@ -70,8 +72,8 @@ The application is built to handle local interruptions and container restarts gr
 | Method | Endpoint | Description |
 | :--- | :--- | :--- |
 | **GET** | `/api/admin/users` | List all registered profiles (Optimized fetching). |
-| **PUT** | `/api/admin/users/{uuid}` | Update user stats (Level, XP, Streak, Role). |
-| **DELETE** | `/api/admin/users/{uuid}` | Permanently delete a user profile. |
+| **PUT** | `/api/admin/users/{id}` | Update user stats (Level, XP, Streak, Role). |
+| **DELETE** | `/api/admin/users/{id}` | Permanently delete a user profile. |
 
 ---
 

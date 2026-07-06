@@ -66,6 +66,30 @@ class TaskServiceTest {
     }
 
     @Test
+    void getDashboard_ShouldAssignTasks_WhenNoTasksForToday() {
+        when(userRepo.findByUsernameWithStudyProgram("testuser")).thenReturn(Optional.of(user));
+        when(props.xpPerLevel()).thenReturn(100);
+        when(props.dailyTaskLimit()).thenReturn(8);
+
+        UserTask todayTask = new UserTask();
+        todayTask.setAssignedDate(LocalDate.now());
+        todayTask.setTask(new Task());
+
+        when(userTaskRepo.findByUserIdAndAssignedDateWithTask(eq(1L), eq(LocalDate.now())))
+                .thenReturn(List.of())
+                .thenReturn(List.of(todayTask));
+
+        when(taskRepo.findRandomGlobalTasks(anyInt())).thenReturn(List.of(new Task()));
+
+        DashboardDTO dashboard = taskService.getDashboard("testuser");
+
+        assertNotNull(dashboard);
+        assertEquals(1, dashboard.tasks().size());
+        verify(userTaskRepo, times(2)).findByUserIdAndAssignedDateWithTask(eq(1L), eq(LocalDate.now()));
+        verify(userTaskRepo).deleteTasksByUserIdAndStatus(eq(1L), eq(com.levelup.backend.enums.TaskStatus.PENDING));
+    }
+
+    @Test
     void completeTask_ShouldThrowUnauthorizedActionException_WhenWrongUser() {
         User otherUser = new User();
         otherUser.setUsername("otheruser");

@@ -30,12 +30,17 @@ public class TaskService {
     private final UserRepository userRepo;
     private final VerificationService verificationService;
 
-    @Transactional(readOnly = true)
+    @Transactional
     public DashboardDTO getDashboard(String username) {
         User user = userRepo.findByUsernameWithStudyProgram(username)
                 .orElseThrow(() -> new ResourceNotFoundException("User not found: " + username));
 
         List<UserTask> tasks = userTaskRepo.findByUserIdAndAssignedDateWithTask(user.getId(), LocalDate.now());
+        if (tasks.isEmpty()) {
+            cleanupPendingTasks(user.getId());
+            assignDailyTasks(user);
+            tasks = userTaskRepo.findByUserIdAndAssignedDateWithTask(user.getId(), LocalDate.now());
+        }
         return DashboardDTO.fromUserAndTasks(user, tasks, props.xpPerLevel());
     }
 
