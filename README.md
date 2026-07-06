@@ -8,7 +8,7 @@
 
 The robust server-side architecture for **LevelUp**, a platform that gamifies the student experience. This RESTful API orchestrates user progression and real-time task management.
 
-Looking for the client-side user interface? Check out the [LevelUp Frontend](../LevelUP-frontend) (or [GitHub Repository](https://github.com/l4aaa/LevelUP-frontend)).
+Looking for the client-side user interface? Check out the [LevelUp Frontend](https://github.com/l4aaa/LevelUP-frontend).
 
 ---
 
